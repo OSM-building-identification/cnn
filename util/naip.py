@@ -9,12 +9,12 @@ req = urllib2.Request('https://api.trimblemaps.com/services.json?per_page=3&clie
 req.add_header('X-API-TOKEN', CRED['naip_tiles_key'])
 resp = urllib2.urlopen(req)
 ata = json.loads(resp.read())
-template = ata['items'][0]['tile_url_templates'][0].replace("${z}", '17')
+template = ata['items'][0]['tile_url_templates'][0]
 
-def fetchTile(x,y,callback):
-	url = template.replace("${x}", str(x)).replace("${y}", str(y))
+def fetchTile(x,y,zoom):
+	url = template.replace("${x}", str(x)).replace("${y}", str(y)).replace("${z}", str(zoom))
 	resp = urllib2.urlopen(url)
-	callback(resp.read())
+	return resp.read()
 
 def deg2tile(lon, lat, zoom):
   lat_rad = math.radians(lat)
