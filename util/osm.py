@@ -16,7 +16,7 @@ def transform(x,y):
 
 auth = 'Basic ' + base64.b64encode(CRED['trimble_marketplace']['email']+':'+CRED['trimble_marketplace']['pass'])
 
-def fetchBuildings(topLeft,bottomRight,callback):
+def fetchBuildings(topLeft,bottomRight):
 	topLeft = transform(topLeft[0], topLeft[1])
 	bottomRight = transform(bottomRight[0], bottomRight[1])
 
@@ -97,4 +97,4 @@ def fetchBuildings(topLeft,bottomRight,callback):
 	names = archive.namelist()
 	geojson = archive.open(names[0]+'data/building_polygon.json')
 
-	callback(json.loads(geojson.read()))
+	return json.loads(geojson.read())
