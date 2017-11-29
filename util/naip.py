@@ -16,6 +16,9 @@ def fetchTile(x,y,zoom):
 	resp = urllib2.urlopen(url)
 	return resp.read()
 
+def getUrl(x,y,zoom):
+  return template.replace("${x}", str(x)).replace("${y}", str(y)).replace("${z}", str(zoom))
+
 def deg2tile(lon, lat, zoom):
   lat_rad = math.radians(lat)
   n = 2.0 ** zoom

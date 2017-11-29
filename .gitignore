@@ -2,3 +2,4 @@
 cred.json
 *.pyc
 classifiers/data/*
+data/*
