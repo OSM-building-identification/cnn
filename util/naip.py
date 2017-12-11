@@ -12,27 +12,33 @@ ata = json.loads(resp.read())
 template = ata['items'][0]['tile_url_templates'][0]
 
 def fetchTile(x,y,zoom):
-	url = template.replace("${x}", str(x)).replace("${y}", str(y)).replace("${z}", str(zoom))
-	resp = urllib2.urlopen(url)
-	return resp.read()
+	try:
+		url = template.replace("${x}", str(x)).replace("${y}", str(y)).replace("${z}", str(zoom))
+		resp = urllib2.urlopen(url)
+		return resp.read()
+	except urllib2.HTTPError, err:
+		return None
+	except urllib2.URLError, err:
+		return None
+
 
 def getUrl(x,y,zoom):
-  return template.replace("${x}", str(x)).replace("${y}", str(y)).replace("${z}", str(zoom))
+	return template.replace("${x}", str(x)).replace("${y}", str(y)).replace("${z}", str(zoom))
 
 def deg2tile(lon, lat, zoom):
-  lat_rad = math.radians(lat)
-  n = 2.0 ** zoom
-  xtile = int((lon + 180.0) / 360.0 * n)
-  ytile = int((1.0 - math.log(math.tan(lat_rad) + (1 / math.cos(lat_rad))) / math.pi) / 2.0 * n)
-  return (xtile, ytile)
+	lat_rad = math.radians(lat)
+	n = 2.0 ** zoom
+	xtile = int((lon + 180.0) / 360.0 * n)
+	ytile = int((1.0 - math.log(math.tan(lat_rad) + (1 / math.cos(lat_rad))) / math.pi) / 2.0 * n)
+	return (xtile, ytile)
 
 # tile's NW corner
 def tile2deg(xtile, ytile, zoom):
-  n = 2.0 ** zoom
-  lon = xtile / n * 360.0 - 180.0
-  lat_rad = math.atan(math.sinh(math.pi * (1 - 2 * ytile / n)))
-  lat = math.degrees(lat_rad)
-  return (lon, lat)
+	n = 2.0 ** zoom
+	lon = xtile / n * 360.0 - 180.0
+	lat_rad = math.atan(math.sinh(math.pi * (1 - 2 * ytile / n)))
+	lat = math.degrees(lat_rad)
+	return (lon, lat)
 
 def isInTile(lon, lat, xtile, ytile, zoom):
 	(left,top) = tile2deg(xtile, ytile, zoom)

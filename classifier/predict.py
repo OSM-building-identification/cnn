@@ -8,7 +8,7 @@ import cnn
 
 cwd = os.path.dirname(__file__)
 
-dir_path = 'data/test/True'
+dir_path = 'data/train/False'
 cnn.model.load_weights('./best.h5')
 images = os.listdir(dir_path)
 failed = 0
@@ -21,7 +21,7 @@ for imgPath in images:
 	imgs = np.vstack([x])
 	classes = cnn.model.predict_classes(imgs, batch_size=10, verbose=0)
 
-	if classes[0][0] == 0:
+	if classes[0][0] == 1:
 		failed = failed + 1
 		img = Image.open(os.path.join(dir_path, imgPath))
 		img.show() 
