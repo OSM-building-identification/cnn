@@ -93,31 +93,5 @@ while True:
 	if len(has_tiles) == 0:
 		break;
 
-
-# for (x,y) in series:
-# 	if fresh(x, y):
-# 		(left,top) = naip.tile2deg(x, y, zoomlevel)
-# 		(right,bottom) = naip.tile2deg(x+1, y+1, zoomlevel)
-# 		cur.execute("select exists(select 1 from building_polygon where geometry && ST_MakeEnvelope(%s, %s, %s, %s, 4326))",(right, bottom, left, top))
-# 		(building, ) = cur.fetchone();
-# 		if ((building == True and truecount <= falsecount/2) or (building == False and falsecount/2 <= truecount)):
-# 			print (x, y, building, truecount, falsecount)
-# 			if building == True:
-# 				truecount = truecount+1
-# 			else:
-# 				falsecount = falsecount+1
-# 			series.pop(0)
-
-# 			img = naip.fetchTile(x,y,zoomlevel)
-# 			if(img != None):
-# 				file = open("%s/%s_%s.jpg" % (root,x, y), 'w')
-# 				file.write(img)
-# 				tilescur.execute("insert into training_tiles (x, y, has_building, verified ) values (%s, %s, %s, %s)",(x, y, building, building))
-# 				tilesconn.commit()
-# 		else:
-# 			series.pop(0)
-# 			series.append((x,y))
-# 			print len(series)
-
 tilesconn.close() 
 conn.close() 
