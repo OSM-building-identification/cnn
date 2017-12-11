@@ -78,24 +78,5 @@ for (x,y) in series:
 			series.append((x,y))
 			print len(series)
 
-
-	# print (x, y)
-	# yrange = filter(lambda y: fresh(x, y), range(startY, endY))
-	# urls = map(lambda y: naip.getUrl(x,y,zoomlevel), yrange)
-	# rs = (grequests.get(u) for u in urls)
-	# reses = grequests.map(rs, stream=True, size=10)
-	# for index, res in enumerate(reses):
-	# 	if res != None:
-	# 		y = yrange[index]
-	# 		print (x, y)
-	# 		(left,top) = naip.tile2deg(x, y, zoomlevel)
-	# 		(right,bottom) = naip.tile2deg(x+1, y+1, zoomlevel)
-	# 		cur.execute("select exists(select 1 from building_polygon where geometry && ST_MakeEnvelope(%s, %s, %s, %s, 4326))",(right, bottom, left, top))
-	# 		(building, ) = cur.fetchone();
-	# 		tilescur.execute("insert into training_tiles (x, y, has_building, verified ) values (%s, %s, %s, %s)",(x, y, building, building))
-	# 		file = open("%s/%s_%s.jpg" % (root,x, y), 'w')
-	# 		shutil.copyfileobj(res.raw, file)    
-	# 		tilesconn.commit()
-
 tilesconn.close() 
 conn.close() 
