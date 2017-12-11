@@ -2,40 +2,35 @@ import os
 import argparse
 from random import *
 import shutil
+from cred import *
+import psycopg2
 
-parser = argparse.ArgumentParser(description='Input sourcedir')
-parser.add_argument("dir", help = "path to fir", type = str)
-args = parser.parse_args()
+conn = psycopg2.connect(
+	database="cucapstone",
+	user = "cucapstone",
+	password = CRED['db']['pass'],
+	host = CRED['db']['host']
+)
+cur = conn.cursor()
+
 outdir = './data'
+indir = '../tiles'
 
-cats = ['True', 'False']
-segments = {
-	'train' : 0.8,
-	'test' : 0.4
-}
-
-odirs = []
-for segment in segments:
-	for cat in cats:
-		odirs.append(os.path.join(segment, cat))
-
-categories = os.listdir(args.dir)
-if all(cat in categories for cat in cats):
-	for dirp in odirs:
-		path = os.path.join(outdir, dirp)
+shutil.rmtree(outdir)
+for dirp in ['train', 'test']:
+	for cat in ['true', 'false']:
+		path = os.path.join(outdir, dirp, cat)
 		if not os.path.exists(path): os.makedirs(path)
 
-	for cat in cats:
-		inpath = os.path.join(args.dir, cat)
-		imgs = os.listdir(inpath)
-		for img in imgs:
-			segment = False
-			while segment == False:
-				for seg in segments:
-					if random() < segments[seg]:
-						segment = seg
-			path = os.path.join(outdir, segment, cat)
-			if not os.path.isfile(path):
-				shutil.copy(os.path.join(inpath, img), path)
-else:
-	print "Missing Dir for a category..."
+cur.execute('select x,y,has_building from training_tiles where verified=true;')
+tiles = cur.fetchall()
+for tile in tiles:
+	(x, y, building) = tile;
+	dirp = 'test' if random() < 0.2 else 'train'
+	cat = 'true' if building else 'false'
+	img = '%s_%s.jpg' % (x, y)
+	imgpath = os.path.join(indir, img)
+	nimgpath = os.path.join(outdir, dirp, cat, img)
+	print (imgpath, nimgpath, dirp, cat, x, y)
+	
+	shutil.copy(imgpath, nimgpath)
