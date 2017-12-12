@@ -74,12 +74,16 @@ def findScannable(x,y):
 		y = y+dy
 
 def findNeighbors(x,y):
-	dirs = [(-1,1), (-1,-1), (0, 1), (0,-1), (1,1), (1,-1), (1, 0), (-1,0)]
+	dirs = [(-1,1), (-1,-1), (1,1), (1,-1), (0, 1), (0,-1), (1, 0), (-1,0)]
 	coords = map(lambda (dx,dy): (x+dx, y+dy), dirs)
-	return filter(lambda (x,y): is_scannable(x,y), coords)[:2]
+	res = filter(lambda (x,y): is_scannable(x,y), coords)[:3]
+	random.shuffle(res)
+	return res
 
 def scan(x, y):
 	img = naip.fetchTile(x,y,zoomlevel)
+	if img == None:
+		print ('failed to fetch', x, y)
 	if img != None:
 		file_jpgdata = StringIO(img)
 		i = Image.open(file_jpgdata)
@@ -94,7 +98,7 @@ def scan(x, y):
 		tilescur.execute("insert into predictions (x, y, has_building) values (%s, %s, %s)",(x, y, building))
 		tilesconn.commit()
 		print ('scanned', x, y, building)
-		been_scanned.append(str(x)+str(y))
+	been_scanned.append(str(x)+str(y))
 
 (x, y) = naip.deg2tile(args.x,args.y,zoomlevel)
 
@@ -105,7 +109,7 @@ while(True):
 	else:
 		new_to_scan = []
 		print to_scan
-		for (x,y) in to_scan:
+		for (x,y) in to_scan[:max(len(to_scan)/2, 2)]:
 			scan(x,y)
 			neighbors = findNeighbors(x,y)
 			new_to_scan = new_to_scan + neighbors
