@@ -33,4 +33,5 @@ for tile in tiles:
 	nimgpath = os.path.join(outdir, dirp, cat, img)
 	print (imgpath, nimgpath, dirp, cat, x, y)
 	
-	shutil.copy(imgpath, nimgpath)
+	if os.path.exists(imgpath):
+		shutil.copy(imgpath, nimgpath)

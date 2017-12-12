@@ -43,3 +43,9 @@ def verify(x, y, building):
 	cur.execute('update training_tiles set verified=true, has_building=%s where x=%s and y=%s' % (is_building, x, y))
 	conn.commit()
 	return ""
+
+@app.route("/predictions")
+def preds():
+	cur.execute('select x,y from predictions where has_building=true;')
+	a=cur.fetchall()
+	return jsonify(a)

@@ -70,7 +70,7 @@ def save(li, building):
 			tilescur.execute("insert into training_tiles (x, y, has_building, verified ) values (%s, %s, %s, %s)",(x, y, building, building))
 			tilesconn.commit()
 
-count=10
+count=50
 
 while True:
 	has_none = []
