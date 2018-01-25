@@ -18,7 +18,7 @@ auth = HTTPBasicAuth()
 @auth.verify_password
 def verify_pw(username, password):
 		if CRED['dev'] != "true":
-			CRED['http']['pass'] == password
+			return str(CRED['http']['pass']) == password
 		else:
 			return True
 
