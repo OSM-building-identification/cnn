@@ -85,7 +85,7 @@ for Trimble Seinor Capsone Project "Building Identification from Satelite Imager
  - **creating database dump**
   - ssh into capstone ec2 then run:  `pg_dump --no-privileges --no-owner --schema-only -h __your_host_here__ -U cucapstone cucapstone`
   
-### Webserver (aws only)
+### Webserver via Systemd (aws only)
 webserver is in `building-identification/server/`:
 
  - serves predictions
@@ -99,10 +99,9 @@ check service status:
  - `sudo service capstone start` start server after being stopped
  - `sudo service capstone stop` stop server (if going to develop) 
  
-run webserver manually:
-
- - make sure service is stopped
- - `export FLASK_APP=/home/ubuntu/building-identification/server/index.py`
+### Running webserver localy or manually
+ - make sure service is stopped (if on aws)
+ - `export FLASK_APP=/YOUR_PATH_TO/building-identification/server/index.py`
  - `flask run`
 
 
