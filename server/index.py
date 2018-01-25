@@ -1,9 +1,12 @@
+import sys
+sys.path.append('util')
+
 from flask import Flask
 from flask import jsonify
 from flask import send_file
 from flask_httpauth import HTTPBasicAuth
 from flask_cors import CORS
-from cred import *
+from db import *
 import psycopg2
 
 app = Flask(__name__)
@@ -13,17 +16,6 @@ auth = HTTPBasicAuth()
 @auth.get_password
 def get_pw(username):
     return CRED['http']['pass']
-
-
-conn = psycopg2.connect(
-	database="cucapstone",
-	user = "cucapstone",
-	password = CRED['db']['pass'],
-	host = CRED['db']['host']
-)
-cur = conn.cursor()
-
-
 
 @app.route("/training_tiles")
 @auth.login_required
@@ -35,7 +27,7 @@ def all():
 @app.route("/t/<int:x>/<int:y>")
 @auth.login_required
 def tile(x, y):
-	path = '../../tiles/%s_%s.jpg' % (x,y)
+	path = '../data/tiles/%s_%s.jpg' % (x,y)
 	return send_file(path, mimetype='image/jpg')
 
 @app.route("/unverified")

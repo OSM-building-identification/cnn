@@ -4,21 +4,14 @@ from random import *
 import shutil
 from cred import *
 import psycopg2
-
-conn = psycopg2.connect(
-	database="cucapstone",
-	user = "cucapstone",
-	password = CRED['db']['pass'],
-	host = CRED['db']['host']
-)
-cur = conn.cursor()
+from db import *
 
 outdir = './data'
-indir = '../tiles'
+indir = './data/tiles'
 
-shutil.rmtree(outdir)
 for dirp in ['train', 'test']:
 	for cat in ['true', 'false']:
+		shutil.rmtree(os.path.join(outdir, dirp, cat))
 		path = os.path.join(outdir, dirp, cat)
 		if not os.path.exists(path): os.makedirs(path)
 

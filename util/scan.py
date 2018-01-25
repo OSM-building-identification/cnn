@@ -15,27 +15,12 @@ from cStringIO import StringIO
 import numpy as np
 
 from cred import *
+from db import *
 
 import cnn
 cnn.model.load_weights('./best.h5')
 
 root = "/home/ubuntu/tiles/"
-
-conn = psycopg2.connect(
-	database="osm",
-	user = CRED['osm']['user'],
-	password = CRED['osm']['pass'],
-	host = CRED['osm']['host']
-)
-cur = conn.cursor()
-
-tilesconn = psycopg2.connect(
-	database="cucapstone",
-	user = "cucapstone",
-	password = CRED['db']['pass'],
-	host = CRED['db']['host']
-)
-tilescur = tilesconn.cursor()
 
 parser = argparse.ArgumentParser(description='Input longitude and lattitude')
 parser.add_argument("x", help = "Left Longitude", type = float)
@@ -53,13 +38,13 @@ def is_scannable(x,y):
 
 	(left,top) = naip.tile2deg(x, y, zoomlevel)
 	(right,bottom) = naip.tile2deg(x+1, y+1, zoomlevel)
-	cur.execute("select exists(select 1 from building_polygon where geometry && ST_MakeEnvelope(%s, %s, %s, %s, 4326))",(right, bottom, left, top))
-	(building, ) = cur.fetchone();
+	res = queryosm("select exists(select 1 from building_polygon where geometry && ST_MakeEnvelope(%s, %s, %s, %s, 4326))" % (right, bottom, left, top))
+	building = res[0][0];
 	if building == True:
 		return False
 
-	tilescur.execute("select exists(select 1 from predictions where x=%s and y=%s)",(x,y))
-	(scanned, ) = tilescur.fetchone();
+	cur.execute("select exists(select 1 from predictions where x=%s and y=%s)",(x,y))
+	(scanned, ) = cur.fetchone();
 
 	return scanned == False
 
@@ -95,8 +80,8 @@ def scan(x, y):
 		imgs = np.vstack([arr])
 		classes = cnn.model.predict_classes(imgs, batch_size=10, verbose=0)
 		building = 'true' if classes[0][0] == 1 else 'false'
-		tilescur.execute("insert into predictions (x, y, has_building) values (%s, %s, %s)",(x, y, building))
-		tilesconn.commit()
+		cur.execute("insert into predictions (x, y, has_building) values (%s, %s, %s)",(x, y, building))
+		conn.commit()
 		print ('scanned', x, y, building)
 	been_scanned.append(str(x)+str(y))
 
@@ -116,5 +101,4 @@ while(True):
 		to_scan = list(set(new_to_scan))
 
 
-tilesconn.close() 
 conn.close() 

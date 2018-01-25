@@ -46,9 +46,9 @@ for Trimble Seinor Capsone Project "Building Identification from Satelite Imager
      ~~~
 
  - **nginx reverse proxy**
-  - proxies all incoming traffic at /api to localhost:5000 (flask server)
-  - statically servers /home/ubuntu/html at /
-  - config:
+   - proxies all incoming traffic at /api to localhost:5000 (flask server)
+   - statically servers /home/ubuntu/html at /
+   - config:
   
   ~~~
     server {
@@ -76,6 +76,14 @@ for Trimble Seinor Capsone Project "Building Identification from Satelite Imager
 
     }
   ~~~
+ - **database setup**
+  - postgres database, schema is saved in schema.dump
+  - create database `cucapstone`:
+   - login via `psql`
+   - `CREATE DATABASE cucapstone;`
+  - being in table schemas `psql -d cucapstone -1 -f schema.dump`
+ - **creating database dump**
+  - ssh into capstone ec2 then run:  `pg_dump --no-privileges --no-owner --schema-only -h __your_host_here__ -U cucapstone cucapstone`
   
 ### Webserver (aws only)
 webserver is in `building-identification/server/`:
@@ -98,7 +106,7 @@ run webserver manually:
  - `flask run`
 
 
-### Training Data Prep (aws only)
+### Training Data Prep
  - running `python util/trainingData.py -105.01 40.01 -105 40` fetches all the tiles in the bounding box defined by the top left / bottom right ln,lat points (-105.01, 40.01) and (-105, 40), and uses osm data to check if there are buildings in each tile. It will upload to the training_tiles table in the database. Images are stored in '../tiles'
  - `python util/selectData.py` will take all training data in the database and split it into train and test data and make folders in `./data` with sub folders true and false for use by keras when training
 
