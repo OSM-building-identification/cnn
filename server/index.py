@@ -15,26 +15,29 @@ app = Flask(__name__)
 CORS(app)
 auth = HTTPBasicAuth()
 
-@auth.get_password
-def get_pw(username):
-		return CRED['http']['pass']
-
+@auth.verify_password
+def verify_pw(username, password):
+		if CRED['dev'] != "true":
+			CRED['http']['pass'] == password
+		else:
+			return True
 
 conn = psycopg2.connect(
-	database="cucapstone",
-	user = "cucapstone",
+	database=CRED['db']['db'],
+	user = CRED['db']['user'],
 	password = CRED['db']['pass'],
 	host = CRED['db']['host']
 )
 cur = conn.cursor()
 
-osmconn = psycopg2.connect(
-	database="osm",
-	user = CRED['osm']['user'],
-	password = CRED['osm']['pass'],
-	host = CRED['osm']['host']
-)
-osmcur = osmconn.cursor()
+if CRED['dev'] != "true":
+	osmconn = psycopg2.connect(
+		database="osm",
+		user = CRED['osm']['user'],
+		password = CRED['osm']['pass'],
+		host = CRED['osm']['host']
+	)
+	osmcur = osmconn.cursor()
 
 @app.route("/training_tiles")
 @auth.login_required
