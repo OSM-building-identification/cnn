@@ -48,7 +48,7 @@ def all():
 
 @app.route("/t/<int:x>/<int:y>")
 def tile(x, y):
-	path = '../../tiles/%s_%s.jpg' % (x,y)
+	path = '../data/tiles/%s_%s.jpg' % (x,y)
 	return send_file(path, mimetype='image/jpg')
 
 @app.route("/unverified")
