@@ -9,8 +9,8 @@ import cnn
 
 cwd = os.path.dirname(__file__)
 
-train_data_dir = '../data/train'
-validation_data_dir = '../data/test'
+train_data_dir = './data/train'
+validation_data_dir = './data/test'
 nb_train_samples = 10000
 nb_validation_samples = 500
 epochs = 100
