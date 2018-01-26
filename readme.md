@@ -55,7 +55,23 @@ for Trimble Seinor Capsone Project "Building Identification from Satelite Imager
    - `export FLASK_APP=your_absolute_path`
  - *at this point you should be able to install and run the manual-verifier and iD*
 
-### Production Setup (aws only)
+## Commands
+
+
+### Training Data Prep
+ - `python util/trainingData.py -105.1 40 -105 40.1` fetches all the tiles in the bounding box defined by the coordinates in order `left bottom right top`, and uses osm data to check if there are buildings in each tile. It will upload to the training_tiles table in the database. Images are stored in `data/tiles`
+ - `python util/selectData.py` will take all training data in the database and split it into train and test data and make folders in `./data` with sub folders true and false for use by keras when training. NOTE this only uses tiles that are marked in the database as verified.
+
+### Classifier Training (anywhere)
+ - `python classifier/train.py` looks for source input at `./data` and trains the model on those images (classified by subdirectory). Run the training data prep to get this data. Will save `wights{n}.h5` in the current directory at each epoch.
+ - `python classifier/predict.py` tests the model on validation data and shows tiles that it classified wrong. (for degugging purposes)
+ - `python classifier/visual.py` creates a visualization of some filter in the network
+
+### Scanner 
+ - given a start point looks for unknown tiles near existing osm data and makes predictions about them if they have no predictions yet and are not in osm data. Saves predictions into the 'predictions' table.
+ - `python util/scan.py -105.2752 40.0130` would scan around boulder
+
+## Production Setup (aws only)
 in addition to all other setup steps
  - **systemd services** for running jobs continuously
    - `capstone.service` runs the webserver + misc jobs
@@ -136,18 +152,4 @@ webserver is in `building-identification/server/`:
 
 check service status:
 
-## Commands
 
-
-### Training Data Prep
- - `python util/trainingData.py -105.1 40 -105 40.1` fetches all the tiles in the bounding box defined by the top left / bottom right ln,lat points (-105.01, 40.01) and (-105, 40), and uses osm data to check if there are buildings in each tile. It will upload to the training_tiles table in the database. Images are stored in '../tiles'
- - `python util/selectData.py` will take all training data in the database and split it into train and test data and make folders in `./data` with sub folders true and false for use by keras when training
-
-### Classifier Training (anywhere)
- - `python classifier/train.py` looks for source input at `./data` and trains the model on those images (classified by subdirectory). Run the training data prep to get this data. Will save `wights{n}.h5` in the current directory at each epoch.
- - `python classifier/predict.py` tests the model on validation data and shows tiles that it classified wrong. (for degugging purposes)
- - `python classifier/predict.py` creates a visualization of some filter in the network
-
-### Scanner (aws only)
- - given a start point looks for unknown tiles near existing osm data and makes predictions about them if they have no predictions yet and are not in osm data. Saves predictions into the 'predictions' table.
- - `python util/scan.py -105.2752 40.0130` would scan around boulder
