@@ -1,8 +1,13 @@
-## Building Identification CNN
+# Building Identification CNN
 for Trimble Seinor Capsone Project "Building Identification from Satelite Imagery"
 
-### Setup/Installation
- - **python dependencies (pip install \*):**
+## Setup
+
+### Local Installation
+ - **install python2.7 and dependencies:** 
+ 
+    *pip install pyproj Pillow psycopg2 Flask flask-cors
+     flask_httpauth pandas tensorflow keras h5py grequests* 
    - `pyproj` python proj4 implementation for converting between coordinate systems
    - `Pillow` python image maniulation library for working with training images
    - `psycopg2` postgres python lobrary
@@ -13,7 +18,45 @@ for Trimble Seinor Capsone Project "Building Identification from Satelite Imager
    - `tensorflow` machine learning
    - `keras` simplified ML api
    - `h5py` reads weight files
- - **credentials file:** the private file `cred.json` is expected in the root directory of this project. It contains information for authenticating to various services. It is not in this repo and should not be added to it.
+   - `grequests` async file downloads
+ - **credentials file:** the private file `cred.json` is expected in the root directory of this project. It contains information for authenticating to various services. It is not in this repo and should not be added to it. It has the following format: (you will probably have to edit database credentials to be your own)
+ - 
+    ~~~
+    {
+     "naip_tiles_key" : ... , 
+     "osm" : { //this is only required on production server
+         "host" : ...,
+         "port" : "5432",
+          "user" : ...,
+          "pass" : ...
+     },
+     "db" : { //local db connection (for storing predictions, tiles etc)
+         "db" : ..., //dm name
+        "user" : ..., //postgres user
+        "host" : "localhost", //except on server
+        "pass" : ...
+     },
+     "http" : { //http authentication for use on server
+          "pass" : ...
+     },
+     "dev" : "true" //set to true execpt on production server
+    }
+    ~~~
+ - **postgres setup**
+   - install postgresql
+   - navigate to `building-identification` directory
+   - `psql` or `sudo -u psql` depending on OS
+     - `CREATE DATABASE cucapstone;`
+   - `psql -d cucapstone -1 -f schema.dump` load table schemas
+ - *at this point you should be able to run Training Data Prep*
+ - **flask setup**
+   - navigate to your `building-identification` directory
+   - find the absolute path of server/index.py. something like `/home/dev/building-identification/server/index.py`
+   - `export FLASK_APP=your_absolute_path`
+ - *at this point you should be able to install and run the manual-verifier and iD*
+
+### Production Setup (aws only)
+in addition to all other setup steps
  - **systemd services** for running jobs continuously
    - `capstone.service` runs the webserver + misc jobs
    
@@ -76,14 +119,13 @@ for Trimble Seinor Capsone Project "Building Identification from Satelite Imager
 
     }
   ~~~
- - **database setup**
-  - postgres database, schema is saved in schema.dump
-  - create database `cucapstone`:
-   - login via `psql`
-   - `CREATE DATABASE cucapstone;`
-  - being in table schemas `psql -d cucapstone -1 -f schema.dump`
  - **creating database dump**
   - ssh into capstone ec2 then run:  `pg_dump --no-privileges --no-owner --schema-only -h __your_host_here__ -U cucapstone cucapstone`
+ - **running webserver**
+   - `sudo service capstone status` check logs for webserver
+   - `sudo service capstone restart` restart webserver (after applying changes)
+   - `sudo service capstone start` start server after being stopped
+   - `sudo service capstone stop` stop server (if going to develop) 
   
 ### Webserver via Systemd (aws only)
 webserver is in `building-identification/server/`:
@@ -94,19 +136,11 @@ webserver is in `building-identification/server/`:
 
 check service status:
 
- - `sudo service capstone status` check logs for webserver
- - `sudo service capstone restart` restart webserver (after applying changes)
- - `sudo service capstone start` start server after being stopped
- - `sudo service capstone stop` stop server (if going to develop) 
- 
-### Running webserver localy or manually
- - make sure service is stopped (if on aws)
- - `export FLASK_APP=/YOUR_PATH_TO/building-identification/server/index.py`
- - `flask run`
+## Commands
 
 
 ### Training Data Prep
- - running `python util/trainingData.py -105.01 40.01 -105 40` fetches all the tiles in the bounding box defined by the top left / bottom right ln,lat points (-105.01, 40.01) and (-105, 40), and uses osm data to check if there are buildings in each tile. It will upload to the training_tiles table in the database. Images are stored in '../tiles'
+ - `python util/trainingData.py -105.1 40 -105 40.1` fetches all the tiles in the bounding box defined by the top left / bottom right ln,lat points (-105.01, 40.01) and (-105, 40), and uses osm data to check if there are buildings in each tile. It will upload to the training_tiles table in the database. Images are stored in '../tiles'
  - `python util/selectData.py` will take all training data in the database and split it into train and test data and make folders in `./data` with sub folders true and false for use by keras when training
 
 ### Classifier Training (anywhere)

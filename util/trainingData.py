@@ -9,6 +9,7 @@ from cred import *
 from db import *
 
 root = "./data/tiles/"
+if not os.path.exists(root): os.makedirs(root)
 
 parser = argparse.ArgumentParser(description='Input longitude and lattitude')
 parser.add_argument("x", help = "Left Longitude", type = float)
