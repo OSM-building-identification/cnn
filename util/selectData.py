@@ -11,7 +11,7 @@ indir = './data/tiles'
 
 for dirp in ['train', 'test']:
 	for cat in ['true', 'false']:
-		shutil.rmtree(os.path.join(outdir, dirp, cat))
+		if os.path.exists(os.path.join(outdir, dirp, cat)): shutil.rmtree(os.path.join(outdir, dirp, cat))
 		path = os.path.join(outdir, dirp, cat)
 		if not os.path.exists(path): os.makedirs(path)
 
