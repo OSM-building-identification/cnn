@@ -81,7 +81,7 @@ def preds():
 def get_tiles():
 	try:
 		tiles = request.json
-	except psycopg2.Error as e:
+	except ValueError:
 		return str(e), 500
 
 	res = []

@@ -89,8 +89,12 @@ def scan(x, y):
 	if img == None:
 		print ('failed to fetch', x, y)
 	if img != None:
-		file_jpgdata = StringIO(img)
-		i = Image.open(file_jpgdata)
+		try:
+			file_jpgdata = StringIO(img)
+			i = Image.open(file_jpgdata)
+		except IOError:
+			return False
+			
 		i = i.resize((cnn.img_width, cnn.img_height))
 		arr = image.img_to_array(i)
 		arr = np.expand_dims(arr, axis=0)
