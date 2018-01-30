@@ -1,6 +1,7 @@
 import sys
 sys.path.append('util')
 
+import naip
 from flask import Flask
 from flask import jsonify
 from flask import send_file
@@ -70,9 +71,39 @@ def verify(x, y, building):
 @app.route("/predictions")
 @auth.login_required
 def preds():
-	cur.execute('select x,y from predictions where has_building=true;')
+	cur.execute('select x,y from predictions')
 	a=cur.fetchall()
 	return jsonify(a)
+
+
+@app.route("/pred_tiles",  methods = ['POST'])
+@auth.login_required
+def get_tiles():
+	try:
+		tiles = request.json
+	except psycopg2.Error as e:
+		return str(e), 500
+
+	res = []
+	for tile in tiles:
+		data = tile.split(',')
+		x = int(float(data[0]))
+		y = int(float(data[1]))
+		z = int(float(data[2]))
+		(slng, slat) = naip.tile2deg(x,y,z)
+		(elng, elat) = naip.tile2deg(x+1,y+1,z)
+		(startX, startY) = naip.deg2tile(slng, slat, 17)
+		(endX, endY) = naip.deg2tile(elng, elat, 17)
+
+		cur.execute("select exists(select 1 from predictions where x>=%s and y>=%s and x<%s and y<%s and has_building=TRUE)",(startX, startY, endX, endY))
+		(has_building, ) = cur.fetchone();
+
+		res.append({
+			'tile' : tile,
+			'has_building' : has_building
+		})
+
+	return json.dumps(res)
 
 @app.route("/osm",  methods = ['POST'])
 @auth.login_required
