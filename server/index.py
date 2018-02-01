@@ -83,7 +83,6 @@ def get_tiles():
 		tiles = request.json
 	except ValueError:
 		return str(e), 500
-	print tiles
 
 	out = {}
 	for tile in tiles:
@@ -117,7 +116,7 @@ def get_tiles():
 						cur.execute("select count(*) from predictions where x>=%s and y>=%s and x<=%s and y<=%s and has_building=TRUE",(tstartX, tstartY, tendX, tendY))
 						(count, ) = cur.fetchone();
 
-						if count/float(size**2) < 0.5 and count/float(size**2) > 0:
+						if (sz >= 15 and count > 0) or (count/float(size**2) < 0.5 and count/float(size**2) > 0):
 							toGet.append((thisX, thisY, thisZ))
 						elif count > 0:
 							res.append((thisX, thisY, thisZ))
@@ -126,41 +125,41 @@ def get_tiles():
 	return jsonify(out)
 
 
-@app.route("/preds/<int:sx>/<int:sy>/<int:sz>")
-@auth.login_required
-def getPredTiles(sx,sy,sz):
-	toGet = [(sx,sy,sz)]
-	res = []
-	while len(toGet) > 0 and len(res) < 1000:
-		(x, y, z) = toGet.pop(0)
-		ratio = 2**(17-z)
-		startX = x*ratio
-		startY = y*ratio
-		size = ratio/2
+# @app.route("/preds/<int:sx>/<int:sy>/<int:sz>")
+# @auth.login_required
+# def getPredTiles(sx,sy,sz):
+# 	toGet = [(sx,sy,sz)]
+# 	res = []
+# 	while len(toGet) > 0 and len(res) < 1000:
+# 		(x, y, z) = toGet.pop(0)
+# 		ratio = 2**(17-z)
+# 		startX = x*ratio
+# 		startY = y*ratio
+# 		size = ratio/2
 
-		if z == 17:
-			res.append((x,y,z))
-		else:
-			for xo in range(2):
-				for yo in range(2):
-					tstartX = startX+(size*xo)
-					tstartY = startY+(size*yo)
-					tendX = tstartX+size
-					tendY = tstartY+size
+# 		if z == 17:
+# 			res.append((x,y,z))
+# 		else:
+# 			for xo in range(2):
+# 				for yo in range(2):
+# 					tstartX = startX+(size*xo)
+# 					tstartY = startY+(size*yo)
+# 					tendX = tstartX+size
+# 					tendY = tstartY+size
 
-					thisX = (x*2)+xo
-					thisY = (y*2)+yo
-					thisZ = z+1
+# 					thisX = (x*2)+xo
+# 					thisY = (y*2)+yo
+# 					thisZ = z+1
 
-					cur.execute("select count(*) from predictions where x>=%s and y>=%s and x<=%s and y<=%s and has_building=TRUE",(tstartX, tstartY, tendX, tendY))
-					(count, ) = cur.fetchone();
+# 					cur.execute("select count(*) from predictions where x>=%s and y>=%s and x<=%s and y<=%s and has_building=TRUE",(tstartX, tstartY, tendX, tendY))
+# 					(count, ) = cur.fetchone();
 
-					if count/float(size**2) < 0.5 and count/float(size**2) > 0:
-						toGet.append((thisX, thisY, thisZ))
-					elif count > 0:
-						res.append((thisX, thisY, thisZ))
+# 					if count/float(size**2) < 0.5 and count/float(size**2) > 0:
+# 						toGet.append((thisX, thisY, thisZ))
+# 					elif count > 0:
+# 						res.append((thisX, thisY, thisZ))
 
-	return jsonify(res)
+# 	return jsonify(res)
 
 @app.route("/osm",  methods = ['POST'])
 @auth.login_required
