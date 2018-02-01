@@ -83,47 +83,48 @@ def get_tiles():
 		tiles = request.json
 	except ValueError:
 		return str(e), 500
+	print tiles
 
-	res = []
+	out = {}
 	for tile in tiles:
-		data = tile.split(',')
-		x = int(float(data[0]))
-		y = int(float(data[1]))
-		z = int(float(data[2]))
-		(slng, slat) = naip.tile2deg(x,y,z)
-		(elng, elat) = naip.tile2deg(x+1,y+1,z)
-		(startX, startY) = naip.deg2tile(slng, slat, 17)
-		(endX, endY) = naip.deg2tile(elng, elat, 17)
+		sx = tile[0]
+		sy = tile[1]
+		sz = tile[2]
 
-		cur.execute("select exists(select 1 from predictions where x>=%s and y>=%s and x<%s and y<%s and has_building=TRUE)",(startX, startY, endX, endY))
-		(has_building, ) = cur.fetchone();
+		toGet = [(sx,sy,sz)]
+		res = []
+		while len(toGet) > 0 and len(res) < 1000:
+			(x, y, z) = toGet.pop(0)
+			ratio = 2**(17-z)
+			startX = x*ratio
+			startY = y*ratio
+			size = ratio/2
 
-		res.append({
-			'tile' : tile,
-			'has_building' : has_building
-		})
+			if z == 17:
+				res.append((x,y,z))
+			else:
+				for xo in range(2):
+					for yo in range(2):
+						tstartX = startX+(size*xo)
+						tstartY = startY+(size*yo)
+						tendX = tstartX+size
+						tendY = tstartY+size
 
-	return json.dumps(res)
+						thisX = (x*2)+xo
+						thisY = (y*2)+yo
+						thisZ = z+1
 
-def getTiles(slng, slat, elng, elat, z):
-	(startX, startY) = naip.deg2tile(slng, slat, z)
-	(endX, endY) = naip.deg2tile(elng, elat, z)
-	res = []
-	for x in range(startX, endX):
-		for y in range(startY, endY):
-			(tslng, tslat) = naip.tile2deg(x,y,z)
-			(telng, telat) = naip.tile2deg(x+1,y+1,z)
-			(tstartX, tstartY) = naip.deg2tile(tslng, tslat, 17)
-			(tendX, tendY) = naip.deg2tile(telng, telat, 17)
-			cur.execute("select exists(select 1 from predictions where x>=%s and y>=%s and x<%s and y<%s and has_building=TRUE)",(tstartX, tstartY, tendX, tendY))
-			(has_building, ) = cur.fetchone();
-			if has_building == True:
-				res.append({
-					'x' : x,
-					'y' : y,
-					'z' : z
-				})
-	return res
+						cur.execute("select count(*) from predictions where x>=%s and y>=%s and x<=%s and y<=%s and has_building=TRUE",(tstartX, tstartY, tendX, tendY))
+						(count, ) = cur.fetchone();
+
+						if count/float(size**2) < 0.5 and count/float(size**2) > 0:
+							toGet.append((thisX, thisY, thisZ))
+						elif count > 0:
+							res.append((thisX, thisY, thisZ))
+		out[','.join(map(lambda n: str(n), tile))] = res
+
+	return jsonify(out)
+
 
 @app.route("/preds/<int:sx>/<int:sy>/<int:sz>")
 @auth.login_required
