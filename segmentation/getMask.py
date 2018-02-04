@@ -10,13 +10,10 @@ import naip
 import argparse
 import os
 
-root = "./data/segmenation/"
-if not os.path.exists(root): os.makedirs(root)
-
-maskDir = "./data/segmenation/mask"
+maskDir = "./data/segmenation/"
 if not os.path.exists(maskDir): os.makedirs(maskDir)
 
-tileDir = "./data/segmenation/tile"
+tileDir = "./data/tiles"
 if not os.path.exists(tileDir): os.makedirs(tileDir)
 
 parser = argparse.ArgumentParser(description='Input longitude and lattitude')
