@@ -3,14 +3,30 @@ sys.path.append('util')
 
 from PIL import Image
 from PIL import ImageDraw
-
+from cStringIO import StringIO
 from db import *
 import json
 import naip
+import argparse
+import os
 
-#queryosm("select exists(select 1 from building_polygon where geometry && ST_MakeEnvelope(%s, %s, %s, %s, 4326))" % (right, bottom, left, top))
+root = "./data/segmenation/"
+if not os.path.exists(root): os.makedirs(root)
 
+maskDir = "./data/segmenation/mask"
+if not os.path.exists(maskDir): os.makedirs(maskDir)
 
+tileDir = "./data/segmenation/tile"
+if not os.path.exists(tileDir): os.makedirs(tileDir)
+
+parser = argparse.ArgumentParser(description='Input longitude and lattitude')
+parser.add_argument("x", help = "Left Longitude", type = float)
+parser.add_argument("y2", help = "Bottom Latitude", type = float)
+parser.add_argument("x2", help = "Right Longitude", type = float)
+parser.add_argument("y", help = "Top Latitude", type = float)
+args = parser.parse_args()
+
+zoomlevel = 17
 
 def getMask(startX,startY, zoomlevel):
 	endX = startX+1
@@ -30,8 +46,27 @@ def getMask(startX,startY, zoomlevel):
 			 
 		buildingCoord = [((buildingX-left)/xLength*255,(top-buildingY)/yLength*255) for (buildingX,buildingY) in building["coordinates"][0]]
 		drw.polygon(buildingCoord, (255,255,255,255))
-	img.show()           
+	img.save("%s/%s_%s.jpg" % (maskDir,startX,startY))
 	
-(x,y) = naip.deg2tile(-105.283, 40.026, 17)
+	realImg = naip.fetchTile(startX,startY,zoomlevel)
+	file_jpgdata = StringIO(realImg)
+	i = Image.open(file_jpgdata) 
+	i.save("%s/%s_%s.jpg" % (tileDir,startX,startY))
+	print(startX, startY)
+
+
+(startX, startY) = naip.deg2tile(args.x,args.y,zoomlevel)
+(endX, endY) = naip.deg2tile(args.x2,args.y2,zoomlevel)
+startbox = (startX, startY, endX, endY)
+
+
+for x in range(startX,endX):
+	for y in range(startY, endY):
+		getMask(x,y,zoomlevel)
+		
+"""
+
+(x,y) = naip.deg2tile(-105.285, 40.026, 17)
 getMask(x,y,17)
 
+"""
