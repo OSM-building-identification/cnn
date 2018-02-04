@@ -18,6 +18,28 @@ SET default_tablespace = '';
 
 SET default_with_oids = false;
 
+
+
+
+CREATE TABLE segmentation_training_tiles (
+    id integer NOT NULL,
+    x integer NOT NULL,
+    y integer NOT NULL,
+    verified boolean
+);
+
+CREATE SEQUENCE segmentation_training_tiles_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE ONLY segmentation_training_tiles ALTER COLUMN id SET DEFAULT nextval('segmentation_training_tiles_id_seq'::regclass);
+
+
+
 --
 -- Name: predictions; Type: TABLE; Schema: public; Owner: -
 --
@@ -61,7 +83,6 @@ CREATE TABLE training_tiles (
     verified boolean,
     has_building boolean
 );
-
 
 --
 -- Name: training_tiles_id_seq; Type: SEQUENCE; Schema: public; Owner: -

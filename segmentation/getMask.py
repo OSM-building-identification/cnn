@@ -43,16 +43,25 @@ def getMask(startX,startY, zoomlevel):
 	
 	for rawbuilding in buildings:
 		building = json.loads(rawbuilding[0])
-			 
-		buildingCoord = [((buildingX-left)/xLength*255,(top-buildingY)/yLength*255) for (buildingX,buildingY) in building["coordinates"][0]]
-		drw.polygon(buildingCoord, (255,255,255,255))
+		try:	 
+			buildingCoord = [((buildingX-left)/xLength*255,(top-buildingY)/yLength*255) for (buildingX,buildingY) in building["coordinates"][0]]
+			drw.polygon(buildingCoord, (255,255,255,255))
+		except ValueError:
+			print ("could not fetch", startX, startY)
+
 	img.save("%s/%s_%s.jpg" % (maskDir,startX,startY))
 	
 	realImg = naip.fetchTile(startX,startY,zoomlevel)
 	file_jpgdata = StringIO(realImg)
 	i = Image.open(file_jpgdata) 
 	i.save("%s/%s_%s.jpg" % (tileDir,startX,startY))
+
+	cur.execute("insert into segmentation_training_tiles (x, y, verified ) values (%s, %s, %s)",(startX, startY, False))
+	conn.commit()
+
 	print(startX, startY)
+
+
 
 
 (startX, startY) = naip.deg2tile(args.x,args.y,zoomlevel)
