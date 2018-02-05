@@ -47,7 +47,7 @@ for Trimble Seinor Capsone Project "Building Identification from Satelite Imager
    - navigate to `building-identification` directory
    - `psql` or `sudo -u psql` depending on OS
      - `CREATE DATABASE cucapstone;`
-   - `psql -d cucapstone -1 -f schema.dump` load table schemas
+   - `psql -d cucapstone -1 -f schema.dump` load table schemas. (will drop existing tables and start fresh)
  - *at this point you should be able to run Training Data Prep*
  - **flask setup**
    - navigate to your `building-identification` directory
@@ -136,7 +136,7 @@ in addition to all other setup steps
     }
   ~~~
  - **creating database dump**
-  - ssh into capstone ec2 then run:  `pg_dump --no-privileges --no-owner --schema-only -h __your_host_here__ -U cucapstone cucapstone`
+  - ssh into capstone ec2 then run:  `pg_dump --no-privileges --no-owner --clean --schema-only -h __your_host_here__ -U cucapstone cucapstone`
  - **running webserver**
    - `sudo service capstone status` check logs for webserver
    - `sudo service capstone restart` restart webserver (after applying changes)
