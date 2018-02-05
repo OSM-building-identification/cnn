@@ -10,7 +10,7 @@ import naip
 import argparse
 import os
 
-maskDir = "./data/segmenation/"
+maskDir = "./data/segmentation/"
 if not os.path.exists(maskDir): os.makedirs(maskDir)
 
 tileDir = "./data/tiles"

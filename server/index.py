@@ -52,6 +52,11 @@ def tile(x, y):
 	path = '../data/tiles/%s_%s.jpg' % (x,y)
 	return send_file(path, mimetype='image/jpg')
 
+@app.route("/mt/<int:x>/<int:y>")
+def mtile(x, y):
+	path = '../data/segmentation/%s_%s.jpg' % (x,y)
+	return send_file(path, mimetype='image/jpg')
+
 
 #Classifier Verification
 @app.route("/unverified")
@@ -81,9 +86,9 @@ def unver_seg():
 @app.route("/segmentation_verify/<int:x>/<int:y>/<string:ok>")
 @auth.login_required
 def verifyseg(x, y, ok):
-	is_ok = building=='true'
+	is_ok = ok=='true'
 	print (x,y,is_ok)
-	cur.execute('update training_tiles set verified=%s where x=%s and y=%s' % (is_ok, x, y))
+	cur.execute('update segmentation_training_tiles set verified=true, useable=%s where x=%s and y=%s' % (is_ok, x, y))
 	conn.commit()
 	return ""
 
