@@ -38,5 +38,5 @@ for imgPath in tiles:
     timgs.append(x)
 nptileimgs = np.vstack(timgs) #tiles
 
-model_checkpoint = ModelCheckpoint('unet.hdf5', monitor='loss',verbose=1, save_best_only=True)
-fcn.model.fit(nptileimgs, npimgs, batch_size=4, nb_epoch=10, verbose=1, validation_split=0.2, shuffle=True, callbacks=[model_checkpoint])
+fcn.model.fit(nptileimgs, npimgs, batch_size=4, nb_epoch=10, verbose=1, validation_split=0.2, shuffle=True)
+fcn.model.save_weights('out.h5')
