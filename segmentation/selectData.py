@@ -13,25 +13,23 @@ outdir = './data/train_segmentation'
 indir = './data/tiles'
 maskin = './data/segmentation'
 
-for dirp in ['train', 'test']:
-	for cat in ['tiles', 'masks']:
-		if os.path.exists(os.path.join(outdir, dirp, cat)): shutil.rmtree(os.path.join(outdir, dirp, cat))
-		path = os.path.join(outdir, dirp, cat)
-		if not os.path.exists(path): os.makedirs(path)
+for cat in ['tiles', 'masks']:
+	if os.path.exists(os.path.join(outdir, cat)): shutil.rmtree(os.path.join(outdir, cat))
+	path = os.path.join(outdir, cat)
+	if not os.path.exists(path): os.makedirs(path)
 
-cur.execute('select x,y from segmentation_training_tiles where verified=true;')
+cur.execute('select x,y from segmentation_training_tiles where useable=true;')
 tiles = cur.fetchall()
 for tile in tiles:
 	(x, y) = tile;
-	dirp = 'test' if random() < 0.2 else 'train'
 	
 	img = '%s_%s.jpg' % (x, y)
 	imgpath = os.path.join(indir, img)
-	nimgpath = os.path.join(outdir, dirp, 'tiles', img)
+	nimgpath = os.path.join(outdir, 'tiles', img)
 	if os.path.exists(imgpath):
 		shutil.copy(imgpath, nimgpath)
 
 	imgpath = os.path.join(maskin, img)
-	nimgpath = os.path.join(outdir, dirp, 'masks', img)
+	nimgpath = os.path.join(outdir, 'masks', img)
 	if os.path.exists(imgpath):
 		shutil.copy(imgpath, nimgpath)

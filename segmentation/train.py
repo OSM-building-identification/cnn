@@ -55,6 +55,7 @@ image_generator = image_datagen.flow(nptileimgs, seed=seed)
 mask_generator = mask_datagen.flow(npimgs, seed=seed)
 
 
+batchnum=0
 for e in range(10):
     print('Epoch', e)
     batches = 0
@@ -66,7 +67,8 @@ for e in range(10):
         # Image.fromarray((mask_batch[0].reshape((256,256))*255).astype(np.uint8)).show()
         fcn.model.fit(image_batch, mask_batch,batch_size=4, verbose=1)
         batches += 1
-	fcn.model.save_weights('%s.h5'%batches)
+        batchnum += 1
+	fcn.model.save_weights('%s.h5'%batchnum)
 
 
 # fcn.model.fit(nptileimgs, npimgs, batch_size=4, nb_epoch=10, verbose=1, validation_split=0.2, shuffle=True)
