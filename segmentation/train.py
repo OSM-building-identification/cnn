@@ -64,9 +64,9 @@ for e in range(10):
 
         # Image.fromarray((image_batch[0]*255).astype(np.uint8), 'RGB').show()
         # Image.fromarray((mask_batch[0].reshape((256,256))*255).astype(np.uint8)).show()
-        fcn.model.fit(image_batch, mask_batch, verbose=1)
+        fcn.model.fit(image_batch, mask_batch,batch_size=4, verbose=1)
         batches += 1
-fcn.model.save_weights('out.h5')
+	fcn.model.save_weights('%s.h5'%batches)
 
 
 # fcn.model.fit(nptileimgs, npimgs, batch_size=4, nb_epoch=10, verbose=1, validation_split=0.2, shuffle=True)
