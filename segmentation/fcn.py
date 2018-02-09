@@ -30,7 +30,7 @@ drop4 = Dropout(0.5)(conv4)
 pool4 = MaxPooling2D(pool_size=(2, 2))(drop4)
 
 conv5 = Conv2D(1024, 3, activation = 'relu', padding = 'same')(pool4)
-conv5 = Conv2D(1024, 3, activation = 'relu', padding = 'same')(conv5)
+conv5 = Conv2D(1024, 3, activation = 'relu', padding = 'same', name='inout')(conv5)
 drop5 = Dropout(0.5)(conv5)
 
 up6 = Conv2D(512, 2, activation = 'relu', padding = 'same')(UpSampling2D(size = (2,2))(drop5))

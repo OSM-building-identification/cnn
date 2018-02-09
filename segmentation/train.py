@@ -10,7 +10,7 @@ import fcn
 
 cwd = os.path.dirname(__file__)
 
-masks_path = 'data/train_segmentation/train/masks'
+masks_path = 'data/train_segmentation/masks'
 masks = os.listdir(masks_path)
 
 imgs = []
@@ -25,7 +25,7 @@ for imgPath in masks:
     imgs.append(x)
 npimgs = np.vstack(imgs) #masks
 
-tiles_path = 'data/train_segmentation/train/tiles'
+tiles_path = 'data/train_segmentation/tiles'
 tiles = os.listdir(tiles_path)
 
 timgs = []
