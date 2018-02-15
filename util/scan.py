@@ -12,14 +12,13 @@ import shutil
 import random
 import time
 from PIL import Image
-from keras.preprocessing import image
 from cStringIO import StringIO
 import numpy as np
 
 from cred import *
 from db import *
 
-import cnn
+
 
 def getQuads(bbox):
 	(startX, startY, endX, endY) = bbox
@@ -136,6 +135,10 @@ def scanAll(quad):
 
 
 if __name__=="__main__":
+	from keras.preprocessing import image
+	import cnn
+
+
 	cnn.model.load_weights('./best.h5')
 
 	root = "./data/tiles/"
