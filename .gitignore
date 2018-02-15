@@ -1,3 +1,6 @@
 .DS_Store
 cred.json
 *.pyc
+classifiers/data/*
+data/*
+tiles/*

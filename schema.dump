@@ -1,0 +1,201 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 9.6.3
+-- Dumped by pg_dump version 9.6.3
+
+DROP INDEX public.location_p;
+DROP INDEX public.location;
+ALTER TABLE ONLY public.training_tiles DROP CONSTRAINT training_tiles_pkey;
+ALTER TABLE ONLY public.segmentation_training_tiles DROP CONSTRAINT segmentation_training_tiles_pkey;
+ALTER TABLE ONLY public.predictions DROP CONSTRAINT predictions_pkey;
+ALTER TABLE public.training_tiles ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE public.predictions ALTER COLUMN id DROP DEFAULT;
+DROP SEQUENCE public.training_tiles_id_seq;
+DROP TABLE public.training_tiles;
+DROP TABLE public.segmentation_training_tiles;
+DROP SEQUENCE public.segmentation_training_tiles_id_seq;
+DROP SEQUENCE public.predictions_id_seq;
+DROP TABLE public.predictions;
+DROP EXTENSION plpgsql;
+DROP SCHEMA public;
+--
+-- Name: public; Type: SCHEMA; Schema: -; Owner: -
+--
+
+CREATE SCHEMA public;
+
+
+--
+-- Name: SCHEMA public; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON SCHEMA public IS 'standard public schema';
+
+
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+SET search_path = public, pg_catalog;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- Name: predictions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE predictions (
+    id integer NOT NULL,
+    x integer NOT NULL,
+    y integer NOT NULL,
+    has_building boolean,
+    model integer
+);
+
+
+--
+-- Name: predictions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE predictions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: predictions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE predictions_id_seq OWNED BY predictions.id;
+
+
+--
+-- Name: segmentation_training_tiles_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE segmentation_training_tiles_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: segmentation_training_tiles; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE segmentation_training_tiles (
+    id integer DEFAULT nextval('segmentation_training_tiles_id_seq'::regclass) NOT NULL,
+    x integer NOT NULL,
+    y integer NOT NULL,
+    useable boolean,
+    verified boolean
+);
+
+
+--
+-- Name: training_tiles; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE training_tiles (
+    id integer NOT NULL,
+    x integer NOT NULL,
+    y integer NOT NULL,
+    verified boolean,
+    has_building boolean
+);
+
+
+--
+-- Name: training_tiles_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE training_tiles_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: training_tiles_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE training_tiles_id_seq OWNED BY training_tiles.id;
+
+
+--
+-- Name: predictions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY predictions ALTER COLUMN id SET DEFAULT nextval('predictions_id_seq'::regclass);
+
+
+--
+-- Name: training_tiles id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY training_tiles ALTER COLUMN id SET DEFAULT nextval('training_tiles_id_seq'::regclass);
+
+
+--
+-- Name: predictions predictions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY predictions
+    ADD CONSTRAINT predictions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: segmentation_training_tiles segmentation_training_tiles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY segmentation_training_tiles
+    ADD CONSTRAINT segmentation_training_tiles_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: training_tiles training_tiles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY training_tiles
+    ADD CONSTRAINT training_tiles_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: location; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX location ON training_tiles USING btree (y, x);
+
+
+--
+-- Name: location_p; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX location_p ON predictions USING btree (x, y);
+
+
+--
+-- PostgreSQL database dump complete
+--
+
