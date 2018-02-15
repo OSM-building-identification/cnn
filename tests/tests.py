@@ -16,7 +16,7 @@ class TestNAIP(unittest2.TestCase):
         y = naip.tile2deg(-9999, -9999, 17)
         z = naip.tile2deg(-9999, 9999, 17)
 
-        self.assertAlmostEqual(x[0], -179.72579, places=6)
+        self.assertAlmostEqual(x[0], -179.72534179, places=6)
         self.assertAlmostEqual(x[1], 85.02737824, places=6)
 
         self.assertAlmostEqual(y[0], -207.46307373, places=6)
