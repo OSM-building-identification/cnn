@@ -1,3 +1,6 @@
+import sys
+sys.path.append('util')
+
 import unittest2
 
 # Whatever is being tested
