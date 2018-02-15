@@ -20,24 +20,6 @@ from cred import *
 from db import *
 
 import cnn
-cnn.model.load_weights('./best.h5')
-
-root = "./data/tiles/"
-zoomlevel = 17
-
-parser = argparse.ArgumentParser(description='Input longitude and lattitude')
-parser.add_argument("x", help = "Left Longitude", type = float)
-parser.add_argument("y2", help = "Bottom Latitude", type = float)
-parser.add_argument("x2", help = "Right Longitude", type = float)
-parser.add_argument("y", help = "Top Latitude", type = float)
-args = parser.parse_args()
-
-topLeft = [args.x, args.y]
-bottomRight = [args.x2,args.y2]
-
-(startX, startY) = naip.deg2tile(topLeft[0],topLeft[1],zoomlevel)
-(endX, endY) = naip.deg2tile(bottomRight[0],bottomRight[1],zoomlevel)
-startbox = (startX, startY, endX, endY)
 
 def getQuads(bbox):
 	(startX, startY, endX, endY) = bbox
@@ -56,7 +38,7 @@ def getArea(bbox):
 	(startX, startY, endX, endY) = bbox
 	dx = endX-startX
 	dy = endY-startY
-	return dx*dy 
+	return dx*dy
 
 def hasData(bbox):
 	(startX, startY, endX, endY) = bbox
@@ -75,7 +57,7 @@ def getPolygon(bbox):
 	(left,top) = naip.tile2deg(startX, startY, zoomlevel)
 	(right,bottom) = naip.tile2deg(endX, endY, zoomlevel)
 	return Polygon([[
-		(left, top), 
+		(left, top),
 		(left, bottom),
 		(right, bottom),
 		(right, top),
@@ -94,7 +76,7 @@ def scan(x, y):
 			i = Image.open(file_jpgdata)
 		except IOError:
 			return False
-			
+
 		i = i.resize((cnn.img_width, cnn.img_height))
 		arr = image.img_to_array(i)
 		arr = np.expand_dims(arr, axis=0)
@@ -108,7 +90,6 @@ def scan(x, y):
 		print ('scanned', x, y, building)
 		return classes[0][0] == 1
 
-quads = [startbox]
 
 def isInside(point, bbox):
 	(startX, startY, endX, endY) = bbox
@@ -153,21 +134,44 @@ def scanAll(quad):
 		print ('adding neighbors', len(ns))
 		quads = ns+quads
 
-#scanned = []
-skipped = []
-while len(quads) > 0:
-	print len(quads)
-	quad = quads.pop(-1)
-	if getArea(quad) < 20:
-		print ('scan', quad, getArea(quad))
-		scanAll(quad)
-		#scanned.append(getPolygon(quad))
-	elif hasData(quad):
-		quads.extend(getQuads(quad))
-	else:
-		#print ('skipping', quad)
-		skipped.append(getPolygon(quad))
 
-print GeometryCollection(skipped)
+if __name__=="__main__":
+	cnn.model.load_weights('./best.h5')
 
-conn.close() 
+	root = "./data/tiles/"
+	zoomlevel = 17
+
+	parser = argparse.ArgumentParser(description='Input longitude and lattitude')
+	parser.add_argument("x", help = "Left Longitude", type = float)
+	parser.add_argument("y2", help = "Bottom Latitude", type = float)
+	parser.add_argument("x2", help = "Right Longitude", type = float)
+	parser.add_argument("y", help = "Top Latitude", type = float)
+	args = parser.parse_args()
+
+	topLeft = [args.x, args.y]
+	bottomRight = [args.x2,args.y2]
+
+	(startX, startY) = naip.deg2tile(topLeft[0],topLeft[1],zoomlevel)
+	(endX, endY) = naip.deg2tile(bottomRight[0],bottomRight[1],zoomlevel)
+	startbox = (startX, startY, endX, endY)
+
+	quads = [startbox]
+	#scanned = []
+	skipped = []
+
+	while len(quads) > 0:
+		print len(quads)
+		quad = quads.pop(-1)
+		if getArea(quad) < 20:
+			print ('scan', quad, getArea(quad))
+			scanAll(quad)
+			#scanned.append(getPolygon(quad))
+		elif hasData(quad):
+			quads.extend(getQuads(quad))
+		else:
+			#print ('skipping', quad)
+			skipped.append(getPolygon(quad))
+
+	print GeometryCollection(skipped)
+
+	conn.close()
