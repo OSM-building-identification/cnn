@@ -99,6 +99,20 @@ def preds():
 	a=cur.fetchall()
 	return jsonify(a)
 
+@app.route("/status/<int:x>/<int:y>/<string:complete>/")
+@auth.login_required
+def status(x,y,complete):
+	is_finished = complete=='true'
+	print(x,y,is_finished)
+	if(is_finished == true):
+		cur.execute('update predictions set completed=true where x=%s and y=%s' % (x,y))
+		conn.commit()
+		return ""
+	else:
+		cur.execute('update predictions set completed=false where x=%s and y=%s' % (x,y))
+		conn.commit()
+		return ""
+
 
 @app.route("/pred_tiles",  methods = ['POST'])
 @auth.login_required
@@ -195,5 +209,3 @@ def osm():
 	except psycopg2.Error as e:
 		osmconn.rollback()
 		return str(e), 500
-
-	
