@@ -4,10 +4,10 @@ for Trimble Seinor Capsone Project "Building Identification from Satelite Imager
 ## Setup
 
 ### Local Installation
- - **install python2.7 and dependencies:** 
- 
+ - **install python2.7 and dependencies:**
+
     *pip install pyproj Pillow psycopg2 Flask flask-cors
-     flask_httpauth pandas tensorflow keras h5py grequests* 
+     flask_httpauth pandas tensorflow keras h5py grequests*
    - `pyproj` python proj4 implementation for converting between coordinate systems
    - `Pillow` python image maniulation library for working with training images
    - `psycopg2` postgres python lobrary
@@ -19,11 +19,12 @@ for Trimble Seinor Capsone Project "Building Identification from Satelite Imager
    - `keras` simplified ML api
    - `h5py` reads weight files
    - `grequests` async file downloads
+   - `geojson` utility for GeoJSON formatted data
  - **credentials file:** the private file `cred.json` is expected in the root directory of this project. It contains information for authenticating to various services. It is not in this repo and should not be added to it. It has the following format: (you will probably have to edit database credentials to be your own)
- - 
+ -
     ~~~
     {
-     "naip_tiles_key" : ... , 
+     "naip_tiles_key" : ... ,
      "osm" : { //this is only required on production server
          "host" : ...,
          "port" : "5432",
@@ -67,7 +68,7 @@ for Trimble Seinor Capsone Project "Building Identification from Satelite Imager
  - `python classifier/predict.py` tests the model on validation data and shows tiles that it classified wrong. (for degugging purposes)
  - `python classifier/visual.py` creates a visualization of some filter in the network
 
-### Scanner 
+### Scanner
  - given a start point looks for unknown tiles near existing osm data and makes predictions about them if they have no predictions yet and are not in osm data. Saves predictions into the 'predictions' table.
  - `python util/scan.py -105.2752 40.0130` would scan around boulder
 
@@ -75,7 +76,7 @@ for Trimble Seinor Capsone Project "Building Identification from Satelite Imager
 in addition to all other setup steps
  - **systemd services** for running jobs continuously
    - `capstone.service` runs the webserver + misc jobs
-   
+
      ~~~
         [Unit]
         Description=CU Capstone ft Trimble Server
@@ -90,7 +91,7 @@ in addition to all other setup steps
         ExecStart=/usr/local/bin/flask run
      ~~~
    - `scanner.service` continuous scanner service
-   
+
      ~~~
         [Unit]
         Description=Tile Scanner
@@ -108,7 +109,7 @@ in addition to all other setup steps
    - proxies all incoming traffic at /api to localhost:5000 (flask server)
    - statically servers /home/ubuntu/html at /
    - config:
-  
+
   ~~~
     server {
         listen 80;
@@ -141,8 +142,8 @@ in addition to all other setup steps
    - `sudo service capstone status` check logs for webserver
    - `sudo service capstone restart` restart webserver (after applying changes)
    - `sudo service capstone start` start server after being stopped
-   - `sudo service capstone stop` stop server (if going to develop) 
-  
+   - `sudo service capstone stop` stop server (if going to develop)
+
 ### Webserver via Systemd (aws only)
 webserver is in `building-identification/server/`:
 
@@ -151,5 +152,3 @@ webserver is in `building-identification/server/`:
  - accepts input on unverified training data
 
 check service status:
-
-
