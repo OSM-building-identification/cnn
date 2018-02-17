@@ -10,8 +10,11 @@ import naip
 import argparse
 import os
 
-maskDir = "./data/segmentation/"
+maskDir = "./data/building_masks/"
 if not os.path.exists(maskDir): os.makedirs(maskDir)
+
+edgeDir = "./data/edge_masks/"
+if not os.path.exists(edgeDir): os.makedirs(edgeDir)
 
 tileDir = "./data/tiles"
 if not os.path.exists(tileDir): os.makedirs(tileDir)
@@ -34,23 +37,29 @@ def getMask(startX,startY, zoomlevel):
 	buildings = queryosm("SELECT ST_AsGeoJSON(geometry) FROM building_polygon where geometry && ST_MakeEnvelope(%s, %s, %s, %s, 4326)" % (right, bottom, left, top))
 	xLength = abs(left-right)
 	yLength = abs(top-bottom)
-	
+
 	img = Image.new("RGB", (256,256), (0,0,0))
 	drw = ImageDraw.Draw(img, "RGB")
-	
+
+	img_edge = Image.new("RGB", (256,256), (0,0,0))
+	drw_edge = ImageDraw.Draw(img_edge, "RGB")
+
 	for rawbuilding in buildings:
 		building = json.loads(rawbuilding[0])
-		try:	 
+		try:
 			buildingCoord = [((buildingX-left)/xLength*255,(top-buildingY)/yLength*255) for (buildingX,buildingY) in building["coordinates"][0]]
 			drw.polygon(buildingCoord, fill=(255,255,255))
+			drw_edge.line(buildingCoord, fill=(255, 255, 255), width=3)
 		except ValueError:
 			print ("could not fetch", startX, startY)
 
 	img.save("%s/%s_%s.jpg" % (maskDir,startX,startY))
+	img_edge.save("%s/%s_%s.jpg" % (edgeDir,startX,startY))
+	
 	try:
 		realImg = naip.fetchTile(startX,startY,zoomlevel)
 		file_jpgdata = StringIO(realImg)
-		i = Image.open(file_jpgdata) 
+		i = Image.open(file_jpgdata)
 		i.save("%s/%s_%s.jpg" % (tileDir,startX,startY))
 	except TypeError:
 		print ("failed to load tile", startX, startY)
@@ -78,7 +87,7 @@ while True:
 # for x in range(startX,endX):
 # 	for y in range(startY, endY):
 # 		getMask(x,y,zoomlevel)
-		
+
 """
 
 (x,y) = naip.deg2tile(-105.285, 40.026, 17)
