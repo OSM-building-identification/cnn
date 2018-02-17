@@ -52,8 +52,8 @@ up9 = Conv2D(64, 2, activation = 'relu', padding = 'same')(UpSampling2D(size = (
 merge9 = Concatenate(axis=-1)([conv1,up9])
 conv9 = Conv2D(64, 3, activation = 'relu', padding = 'same')(merge9)
 conv9 = Conv2D(64, 3, activation = 'relu', padding = 'same')(conv9)
-conv9 = Conv2D(2, 3, activation = 'relu', padding = 'same')(conv9)
-conv10 = Conv2D(1, 1, activation = 'sigmoid')(conv9)
+conv9 = Conv2D(4, 3, activation = 'relu', padding = 'same')(conv9)
+conv10 = Conv2D(2, 1, activation = 'sigmoid')(conv9)
 
 model = Model(inputs=inputs, outputs=conv10)
 

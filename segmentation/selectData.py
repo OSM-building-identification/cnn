@@ -9,11 +9,12 @@ from cred import *
 import psycopg2
 from db import *
 
-outdir = './data/train_segmentation'
+outdir = './data/2class_train_segmentation'
 indir = './data/tiles'
-maskin = './data/segmentation'
+maskin = './data/building_masks'
+egdemaskin = './data/edge_masks'
 
-for cat in ['tiles', 'masks']:
+for cat in ['tiles', 'building_masks', 'edge_masks']:
 	if os.path.exists(os.path.join(outdir, cat)): shutil.rmtree(os.path.join(outdir, cat))
 	path = os.path.join(outdir, cat)
 	if not os.path.exists(path): os.makedirs(path)
@@ -30,6 +31,11 @@ for tile in tiles:
 		shutil.copy(imgpath, nimgpath)
 
 	imgpath = os.path.join(maskin, img)
-	nimgpath = os.path.join(outdir, 'masks', img)
+	nimgpath = os.path.join(outdir, 'building_masks', img)
+	if os.path.exists(imgpath):
+		shutil.copy(imgpath, nimgpath)
+
+	imgpath = os.path.join(egdemaskin, img)
+	nimgpath = os.path.join(outdir, 'edge_masks', img)
 	if os.path.exists(imgpath):
 		shutil.copy(imgpath, nimgpath)

@@ -10,7 +10,7 @@ import fcn
 
 cwd = os.path.dirname(__file__)
 
-masks_path = 'data/train_segmentation/masks'
+masks_path = 'data/2class_train_segmentation/building_masks'
 masks = os.listdir(masks_path)
 
 imgs = []
@@ -25,7 +25,24 @@ for imgPath in masks:
     imgs.append(x)
 npimgs = np.vstack(imgs) #masks
 
-tiles_path = 'data/train_segmentation/tiles'
+
+edge_masks_path = 'data/2class_train_segmentation/edge_masks'
+edge_masks = os.listdir(edge_masks_path)
+
+edge_imgs = []
+for imgPath in edge_masks:
+    img = image.load_img(os.path.join(edge_masks_path, imgPath), target_size=(fcn.img_width, fcn.img_height), grayscale = True)
+    x = np.asarray(img).reshape((256, 256, 1))
+    x = np.expand_dims(x, axis=0)
+    x = x * (1./255)
+    x[x > 0.5] = 1
+    x[x <= 0.5] = 0
+    
+    edge_imgs.append(x)
+edge_mask_imgs = np.vstack(edge_imgs) #masks
+
+
+tiles_path = 'data/2class_train_segmentation/tiles'
 tiles = os.listdir(tiles_path)
 
 timgs = []
@@ -47,13 +64,15 @@ data_gen_args = dict(
                      zoom_range=0.2)
 image_datagen = image.ImageDataGenerator(**data_gen_args)
 mask_datagen = image.ImageDataGenerator(**data_gen_args)
+edge_mask_datagen = image.ImageDataGenerator(**data_gen_args)
 seed = 1
 image_datagen.fit(nptileimgs[:10], augment=True, seed=seed)
 mask_datagen.fit(npimgs[:10], augment=True, seed=seed)
+edge_mask_datagen.fit(edge_mask_imgs[:10], augment=True, seed=seed)
 
 image_generator = image_datagen.flow(nptileimgs, seed=seed)
 mask_generator = mask_datagen.flow(npimgs, seed=seed)
-
+edge_mask_generator = edge_mask_datagen.flow(edge_mask_imgs, seed=seed)
 
 batchnum=0
 for e in range(10):
@@ -62,14 +81,15 @@ for e in range(10):
     while batches < 64:
         image_batch = image_generator.next()
         mask_batch = mask_generator.next()
+        edge_mask_batch = mask_generator.next()
+
+        mergedbatch = np.array([mask_batch, edge_mask_batch]).reshape(32,256,256,2)
+
 
         # Image.fromarray((image_batch[0]*255).astype(np.uint8), 'RGB').show()
         # Image.fromarray((mask_batch[0].reshape((256,256))*255).astype(np.uint8)).show()
-        fcn.model.fit(image_batch, mask_batch,batch_size=4, verbose=1)
+        fcn.model.fit(image_batch, mergedbatch, batch_size=4, verbose=1)
         batches += 1
         batchnum += 1
-	fcn.model.save_weights('%s.h5'%batchnum)
+	fcn.model.save_weights('2class_%s.h5'%batchnum)
 
-
-# fcn.model.fit(nptileimgs, npimgs, batch_size=4, nb_epoch=10, verbose=1, validation_split=0.2, shuffle=True)
-# fcn.model.save_weights('out.h5')

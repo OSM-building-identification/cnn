@@ -14,7 +14,7 @@ import random
 import fcn
 
 print "loading weights..."
-fcn.model.load_weights('data/weights/993.h5')
+fcn.model.load_weights('2class_1.h5')
 
 cwd = os.path.dirname(__file__)
 
@@ -32,31 +32,29 @@ for imgpath in images:
 	npimg = np.vstack([x]) 
 
 	out = fcn.model.predict(npimg, verbose=1)[0]
-	out = out.reshape(fcn.img_width, fcn.img_height)
+	out = out.reshape(2, fcn.img_width, fcn.img_height)
+	for outi in out:
+		outi = outi*255
+		i = Image.fromarray(outi)
+		i.show()
 
-	# out[out<0.5] = 0
-	# out[out>=0.5]=1
-	out = out*255
-	i = Image.fromarray(out)
-	i.show()
+	# rst,thresh = cv2.threshold(out.astype(np.uint8),158,255,0)#cv2.adaptiveThreshold(img, 255, adaptiveMethod=cv2.ADAPTIVE_THRESH_GAUSSIAN_C, thresholdType=cv2.THRESH_BINARY, blockSize=7, C=0)
+	# (x, contours, hier) = cv2.findContours(thresh, 1, cv2.CHAIN_APPROX_SIMPLE)
+	# print cv2.CHAIN_APPROX_SIMPLE
 
-	rst,thresh = cv2.threshold(out.astype(np.uint8),158,255,0)#cv2.adaptiveThreshold(img, 255, adaptiveMethod=cv2.ADAPTIVE_THRESH_GAUSSIAN_C, thresholdType=cv2.THRESH_BINARY, blockSize=7, C=0)
-	(x, contours, hier) = cv2.findContours(thresh, 1, cv2.CHAIN_APPROX_SIMPLE)
-	print cv2.CHAIN_APPROX_SIMPLE
+	# drw = ImageDraw.Draw(img, "RGBA")
 
-	drw = ImageDraw.Draw(img, "RGBA")
-
-	for contour in contours:
-		rect = cv2.minAreaRect(contour)
-		box = cv2.boxPoints(rect)
-		boxpts = [(p[0], p[1]) for p in box]
-		# epsilon = 0.02*cv2.arcLength(contour,True)
-		# approx = cv2.approxPolyDP(contour,epsilon,True)
-		# approxpnts = [(p[0][0], p[0][1]) for p in contour]
-		try:
-			drw.polygon(boxpts, outline=(255,0,0,158))
-		except TypeError:
-			print "draw err"
+	# for contour in contours:
+	# 	rect = cv2.minAreaRect(contour)
+	# 	box = cv2.boxPoints(rect)
+	# 	boxpts = [(p[0], p[1]) for p in box]
+	# 	# epsilon = 0.02*cv2.arcLength(contour,True)
+	# 	# approx = cv2.approxPolyDP(contour,epsilon,True)
+	# 	# approxpnts = [(p[0][0], p[0][1]) for p in contour]
+	# 	try:
+	# 		drw.polygon(boxpts, outline=(255,0,0,158))
+	# 	except TypeError:
+	# 		print "draw err"
 
 
 	img.show()

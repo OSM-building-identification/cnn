@@ -69,28 +69,20 @@ def getMask(startX,startY, zoomlevel):
 
 	print(startX, startY)
 
+cur.execute("select * from  segmentation_training_tiles where useable=true")
+allusable = cur.fetchall()
+for tile in allusable:
+	getMask(tile[1], tile[2], 17)
 
+# (startX, startY) = naip.deg2tile(args.x,args.y,zoomlevel)
+# (endX, endY) = naip.deg2tile(args.x2,args.y2,zoomlevel)
+# startbox = (startX, startY, endX, endY)
 
-
-(startX, startY) = naip.deg2tile(args.x,args.y,zoomlevel)
-(endX, endY) = naip.deg2tile(args.x2,args.y2,zoomlevel)
-startbox = (startX, startY, endX, endY)
-
-while True:
-	count = 50
-	res = queryosm("select ST_X(ST_centroid(geometry)), ST_Y(ST_centroid(geometry)) from building_polygon where geometry && ST_MakeEnvelope(%s, %s, %s, %s, 4326) order by random() limit %s;" % (args.x2, args.y2, args.x, args.y, count))
-	tiles = list(set(map(lambda coord: naip.deg2tile(coord[0],coord[1],17), res)))
-	print len(tiles)
-	for x,y in tiles:
-		getMask(x,y,zoomlevel)
-
-# for x in range(startX,endX):
-# 	for y in range(startY, endY):
+# while True:
+# 	count = 50
+# 	res = queryosm("select ST_X(ST_centroid(geometry)), ST_Y(ST_centroid(geometry)) from building_polygon where geometry && ST_MakeEnvelope(%s, %s, %s, %s, 4326) order by random() limit %s;" % (args.x2, args.y2, args.x, args.y, count))
+# 	tiles = list(set(map(lambda coord: naip.deg2tile(coord[0],coord[1],17), res)))
+# 	print len(tiles)
+# 	for x,y in tiles:
 # 		getMask(x,y,zoomlevel)
 
-"""
-
-(x,y) = naip.deg2tile(-105.285, 40.026, 17)
-getMask(x,y,17)
-
-"""
