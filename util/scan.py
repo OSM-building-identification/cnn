@@ -14,6 +14,7 @@ import time
 from PIL import Image
 from cStringIO import StringIO
 import numpy as np
+import ast
 
 from cred import *
 from db import *
@@ -44,6 +45,7 @@ def hasData(bbox):
 
 	(left,top) = naip.tile2deg(startX, startY, zoomlevel)
 	(right,bottom) = naip.tile2deg(endX, endY, zoomlevel)
+
 	building = queryosm("select exists(select 1 from building_polygon where geometry && ST_MakeEnvelope(%s, %s, %s, %s, 4326))" % (right, bottom, left, top))[0][0]
 	if building == True:
 		return True
@@ -133,6 +135,48 @@ def scanAll(quad):
 		print ('adding neighbors', len(ns))
 		quads = ns+quads
 
+def getTileNeighbors(roads):
+	roadTiles = []
+	neighbors = []
+	for rawroad in roads:
+		x = ast.literal_eval(rawroad[0])
+		coords = x.get('coordinates', "No coordinates found")
+		# The coords corresponding to a singular LineString
+		for [x,y] in coords:
+			roadTiles.append(naip.deg2tile(x, y, zoomlevel))
+	for (x, y) in roadTiles:
+		neighbors.append((x+1, y+1))
+		neighbors.append((x-1, y-1))
+		neighbors.append((x+1, y-1))
+		neighbors.append((x-1, y+1))
+		neighbors.append((x, y+1))
+		neighbors.append((x, y-1))
+		neighbors.append((x+1, y))
+		neighbors.append((x-1, y))
+	return list(set(neighbors))
+
+
+def getRoads(bbox):
+	(startX, startY, endX, endY) = bbox
+	(left,top) = naip.tile2deg(startX, startY, zoomlevel)
+	(right,bottom) = naip.tile2deg(endX, endY, zoomlevel)
+	roads = queryosm("select ST_AsGeoJSON(geometry) from highway_line where highway='tertiary' and ST_Intersects(geometry, ST_MakeEnvelope(%s, %s, %s, %s, 4326))" % (right, bottom, left, top))
+	''' printing format for GeoJSON.io
+	for road in roads:
+		print("{\n\"type\": \"Feature\",\n\"geometry\": " + str(road[0]) + ",")
+		print("\"properties\": {\"name\": \"roads\"}\n},")
+	'''
+	return getTileNeighbors(roads)
+
+
+
+def scanRoads(quad):
+	global quads
+	roadsToScan = getRoads(quad)
+
+	for (x,y) in roadsToScan:
+		#scan(x, y)
+		(lon, lat) = naip.tile2deg(x, y, zoomlevel)
 
 if __name__=="__main__":
 	from keras.preprocessing import image
@@ -162,6 +206,13 @@ if __name__=="__main__":
 	#scanned = []
 	skipped = []
 
+	quad = quads.pop(-1)
+	scanRoads(quad)
+
+	'''
+	This is the code to search based on neighbors and quad trees.
+	Currently commented out to search based on roads in the given bounding box.
+
 	while len(quads) > 0:
 		print len(quads)
 		quad = quads.pop(-1)
@@ -174,6 +225,9 @@ if __name__=="__main__":
 		else:
 			#print ('skipping', quad)
 			skipped.append(getPolygon(quad))
+	'''
+
+
 
 	print GeometryCollection(skipped)
 
