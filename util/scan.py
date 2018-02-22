@@ -135,16 +135,67 @@ def scanAll(quad):
 		print ('adding neighbors', len(ns))
 		quads = ns+quads
 
+# Using this to print out the tile coordinates for each LineString found in the
+# given bounding box
+def findGeoJSONArea(roadTiles):
+	#print(roadTiles)
+	near = []
+	nearDeg = []
+	tiles = {}
+	degTiles = {}
+	for key, value in roadTiles.iteritems():
+		del near[:]
+		for (x, y) in value:
+			near.append((x+1, y+1))
+			near.append((x-1, y-1))
+			near.append((x+1, y-1))
+			near.append((x-1, y+1))
+			near.append((x, y+1))
+			near.append((x, y-1))
+			near.append((x+1, y))
+			near.append((x-1, y))
+		tiles[key] = near
+	for key, value in tiles.iteritems():
+		del nearDeg[:]
+		for (x, y) in value:
+			nearDeg.append(naip.tile2deg(x, y, zoomlevel))
+		degTiles[key] = nearDeg
+	# Now updatedTiles is a dict with a list of all neighbors corresponding
+	# to each LineString entry in the bounding box. The list represents
+	# neighbors as their latitude and longitude
+	print degTiles
+
+
 def getTileNeighbors(roads):
-	roadTiles = []
+	keys = range(len(roads))
+	values = []
+	roadTiles = {}
 	neighbors = []
+	tmp = []
+	roadTilesLst = []
 	for rawroad in roads:
+		del tmp[:]
 		x = ast.literal_eval(rawroad[0])
 		coords = x.get('coordinates', "No coordinates found")
-		# The coords corresponding to a singular LineString
-		for [x,y] in coords:
-			roadTiles.append(naip.deg2tile(x, y, zoomlevel))
-	for (x, y) in roadTiles:
+
+		# Convert to tile numbers to find neighbors
+		for [x, y] in coords:
+			tmp.append(naip.deg2tile(x, y, zoomlevel))
+		values.append(tmp)
+	# Need this to associate each LineString with the polygon that will be scanned
+	for i in keys:
+		roadTiles[i] = values[i]
+
+	# Need this to find the polygons for visual representation
+	findGeoJSONArea(roadTiles)
+
+	# Make large list of all road tiles
+	for key, value in roadTiles.iteritems():
+		for (x, y) in value:
+			roadTilesLst.append((x, y))
+
+	# Find all tiles surrounding roads and make larger list of neighbors
+	for (x, y) in roadTilesLst:
 		neighbors.append((x+1, y+1))
 		neighbors.append((x-1, y-1))
 		neighbors.append((x+1, y-1))
@@ -153,6 +204,8 @@ def getTileNeighbors(roads):
 		neighbors.append((x, y-1))
 		neighbors.append((x+1, y))
 		neighbors.append((x-1, y))
+	#print neighbors
+	print len(set(neighbors))
 	return list(set(neighbors))
 
 
@@ -172,11 +225,12 @@ def getRoads(bbox):
 
 def scanRoads(quad):
 	global quads
-	roadsToScan = getRoads(quad)
-
+	roadsToScan = sorted(getRoads(quad), key=lambda x: x[1])
+	#roadsToScan = getRoads(quad)
 	for (x,y) in roadsToScan:
 		#scan(x, y)
 		(lon, lat) = naip.tile2deg(x, y, zoomlevel)
+		#print (str(lat) + ", " + str(lon))
 
 if __name__=="__main__":
 	from keras.preprocessing import image
