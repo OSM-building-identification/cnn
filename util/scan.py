@@ -186,8 +186,8 @@ def getTileNeighbors(roads):
 	for i in keys:
 		roadTiles[i] = values[i]
 
-	# Need this to find the polygons for visual representation
-	findGeoJSONArea(roadTiles)
+	# Turn this on to find the polygons for visual representation
+	#findGeoJSONArea(roadTiles)
 
 	# Make large list of all road tiles
 	for key, value in roadTiles.iteritems():
