@@ -214,11 +214,11 @@ def getRoads(bbox):
 	(left,top) = naip.tile2deg(startX, startY, zoomlevel)
 	(right,bottom) = naip.tile2deg(endX, endY, zoomlevel)
 	roads = queryosm("select ST_AsGeoJSON(geometry) from highway_line where highway='tertiary' and ST_Intersects(geometry, ST_MakeEnvelope(%s, %s, %s, %s, 4326))" % (right, bottom, left, top))
-	''' printing format for GeoJSON.io
+
 	for road in roads:
 		print("{\n\"type\": \"Feature\",\n\"geometry\": " + str(road[0]) + ",")
 		print("\"properties\": {\"name\": \"roads\"}\n},")
-	'''
+
 	return getTileNeighbors(roads)
 
 
@@ -243,7 +243,6 @@ if __name__=="__main__":
 	zoomlevel = 17
 
 	parser = argparse.ArgumentParser(description='Input longitude and lattitude')
-	parser.add_argument("-s", help= "Type of scan to run, road or quadtree.\n", type = str, required=True)
 	parser.add_argument("x", help = "Left Longitude", type = float)
 	parser.add_argument("y2", help = "Bottom Latitude", type = float)
 	parser.add_argument("x2", help = "Right Longitude", type = float)
@@ -262,24 +261,28 @@ if __name__=="__main__":
 	skipped = []
 
 	quad = quads.pop(-1)
+	scanRoads(quad)
 
-	if (args.s == "road" or "r"):
-		print ("Running road scan\n")
-		scanRoads(quad)
-	elif (args.s == "quadtree" or "q"):
-		print ("running quadtree scan")
-		while len(quads) > 0:
-			print len(quads)
-			quad = quads.pop(-1)
-			if getArea(quad) < 20:
-				print ('scan', quad, getArea(quad))
-				scanAll(quad)
-				#scanned.append(getPolygon(quad))
-			elif hasData(quad):
-				quads.extend(getQuads(quad))
-			else:
-				#print ('skipping', quad)
-				skipped.append(getPolygon(quad))
-	print GeometryCollection(skipped)
+	'''
+	This is the code to search based on neighbors and quad trees.
+	Currently commented out to search based on roads in the given bounding box.
+
+	while len(quads) > 0:
+		print len(quads)
+		quad = quads.pop(-1)
+		if getArea(quad) < 20:
+			print ('scan', quad, getArea(quad))
+			scanAll(quad)
+			#scanned.append(getPolygon(quad))
+		elif hasData(quad):
+			quads.extend(getQuads(quad))
+		else:
+			#print ('skipping', quad)
+			skipped.append(getPolygon(quad))
+	'''
+
+
+
+	#print GeometryCollection(skipped)
 
 	conn.close()
