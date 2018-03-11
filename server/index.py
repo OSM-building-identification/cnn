@@ -137,7 +137,7 @@ def get_tiles():
 
 		toGet = [(sx,sy,sz)]
 		res = {}
-		while len(toGet) > 0 and len(res) < 1000:
+		while len(toGet) > 0 and len(res) < 50:
 			(x, y, z) = toGet.pop(0)
 			ratio = 2**(17-z)
 			startX = x*ratio
