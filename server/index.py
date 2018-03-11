@@ -1,5 +1,6 @@
 import sys
 sys.path.append('util')
+sys.path.append('segmentation')
 
 import naip
 from flask import Flask
@@ -11,6 +12,7 @@ from flask import request
 from cred import *
 import psycopg2
 import json
+import predictTile
 
 app = Flask(__name__)
 CORS(app)
@@ -113,6 +115,11 @@ def status(x,y,complete):
 		conn.commit()
 		return ""
 
+@app.route("/contours/<int:x>/<int:y>")
+@auth.login_required
+def contours(x,y):
+	return jsonify(predictTile.findContours(x,y,17))
+
 
 @app.route("/pred_tiles",  methods = ['POST'])
 @auth.login_required
@@ -129,7 +136,7 @@ def get_tiles():
 		sz = tile[2]
 
 		toGet = [(sx,sy,sz)]
-		res = []
+		res = {}
 		while len(toGet) > 0 and len(res) < 1000:
 			(x, y, z) = toGet.pop(0)
 			ratio = 2**(17-z)
@@ -137,27 +144,41 @@ def get_tiles():
 			startY = y*ratio
 			size = ratio/2
 
-			if z == 17:
-				res.append((x,y,z))
-			else:
-				for xo in range(2):
-					for yo in range(2):
-						tstartX = startX+(size*xo)
-						tstartY = startY+(size*yo)
-						tendX = tstartX+size
-						tendY = tstartY+size
+			for xo in range(2):
+				for yo in range(2):
+					tstartX = startX+(size*xo)
+					tstartY = startY+(size*yo)
+					tendX = tstartX+size
+					tendY = tstartY+size
 
-						thisX = (x*2)+xo
-						thisY = (y*2)+yo
-						thisZ = z+1
+					thisX = (x*2)+xo
+					thisY = (y*2)+yo
+					thisZ = z+1
 
-						cur.execute("select count(*) from predictions where x>=%s and y>=%s and x<=%s and y<=%s and has_building=TRUE",(tstartX, tstartY, tendX, tendY))
-						(count, ) = cur.fetchone();
+					cur.execute("select x,y,model,completed,incorrect from predictions where x>=%s and y>=%s and x<%s and y<%s and has_building=TRUE",(tstartX, tstartY, tendX, tendY))
+					resTiles = cur.fetchall();
+					count = len(resTiles)
 
-						if (sz >= 15 and count > 0) or (count/float(size**2) < 0.5 and count/float(size**2) > 0):
+
+					if(thisZ == 17):
+						for restile in resTiles:
+							(x,y,model,completed,incorrect) = restile
+							res[str(x)+','+str(y)+',17'] = {
+								'id' : str(x)+','+str(y)+',17',
+								'coords' : [x,y,17],
+								'model' : model,
+								'completed' : completed,
+								'incorrect' : incorrect
+							}
+					elif (sz >= 15 and count > 0) or (count/float(size**2) < 0.5 and count/float(size**2) > 0):
 							toGet.append((thisX, thisY, thisZ))
-						elif count > 0:
-							res.append((thisX, thisY, thisZ))
+					elif count > 0:
+						res[str(thisX)+','+str(thisY)+','+str(thisZ)] = {
+							'id' : str(thisX)+','+str(thisY)+','+str(thisZ),
+							'coords' : [thisX, thisY, thisZ]
+						}
+				
+
 		out[','.join(map(lambda n: str(n), tile))] = res
 
 	return jsonify(out)
