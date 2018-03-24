@@ -11,6 +11,8 @@ resp = urllib2.urlopen(req)
 ata = json.loads(resp.read())
 template = ata['items'][0]['tile_url_templates'][0]
 
+template = "https://c.tiles.mapbox.com/v4/digitalglobe.316c9a2e/${z}/${x}/${y}.png?access_token=pk.eyJ1IjoiZGlnaXRhbGdsb2JlIiwiYSI6ImNqZGFrZ2c2dzFlMWgyd2x0ZHdmMDB6NzYifQ.9Pl3XOO82ArX94fHV289Pg"
+
 def fetchTile(x,y,zoom):
 	try:
 		url = template.replace("${x}", str(x)).replace("${y}", str(y)).replace("${z}", str(zoom))

@@ -51,12 +51,12 @@ def all():
 
 @app.route("/t/<int:x>/<int:y>")
 def tile(x, y):
-	path = '../data/tiles/%s_%s.jpg' % (x,y)
+	path = '../data/hires-tiles/%s_%s.jpg' % (x,y)
 	return send_file(path, mimetype='image/jpg')
 
 @app.route("/mt/<int:x>/<int:y>")
 def mtile(x, y):
-	path = '../data/segmentation/%s_%s.jpg' % (x,y)
+	path = '../data/hires-segmentation/%s_%s.jpg' % (x,y)
 	return send_file(path, mimetype='image/jpg')
 
 
@@ -85,12 +85,12 @@ def unver_seg():
 	a=cur.fetchall()
 	return jsonify(a)
 
-@app.route("/segmentation_verify/<int:x>/<int:y>/<string:ok>")
+@app.route("/segmentation_verify/<int:x>/<int:y>/<string:ok>/<string:dx>/<string:dy>")
 @auth.login_required
-def verifyseg(x, y, ok):
+def verifyseg(x, y, ok, dx, dy):
 	is_ok = ok=='true'
 	print (x,y,is_ok)
-	cur.execute('update segmentation_training_tiles set verified=true, useable=%s where x=%s and y=%s' % (is_ok, x, y))
+	cur.execute('update segmentation_training_tiles set verified=true, useable=%s, dx=%d, dy=%d where x=%s and y=%s' % (is_ok, int(dx), int(dy), x, y))
 	conn.commit()
 	return ""
 

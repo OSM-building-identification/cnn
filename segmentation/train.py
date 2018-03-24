@@ -51,24 +51,20 @@ seed = 1
 image_datagen.fit(nptileimgs[:10], augment=True, seed=seed)
 mask_datagen.fit(npimgs[:10], augment=True, seed=seed)
 
-image_generator = image_datagen.flow(nptileimgs, seed=seed)
-mask_generator = mask_datagen.flow(npimgs, seed=seed)
+image_generator = image_datagen.flow(nptileimgs, seed=seed, batch_size=1000)
+mask_generator = mask_datagen.flow(npimgs, seed=seed, batch_size=1000)
 
 
 batchnum=0
-for e in range(10):
+for e in range(1000):
     print('Epoch', e)
     batches = 0
-    while batches < 64:
-        image_batch = image_generator.next()
-        mask_batch = mask_generator.next()
-
-        # Image.fromarray((image_batch[0]*255).astype(np.uint8), 'RGB').show()
-        # Image.fromarray((mask_batch[0].reshape((256,256))*255).astype(np.uint8)).show()
-        fcn.model.fit(image_batch, mask_batch,batch_size=4, verbose=1)
-        batches += 1
-        batchnum += 1
-	fcn.model.save_weights('%s.h5'%batchnum)
+    image_batch = []
+    mask_batch = []
+    image_batch = image_generator.next()
+    mask_batch = mask_generator.next()
+    fcn.model.fit(np.array(image_batch), np.array(mask_batch),batch_size=32, verbose=1)
+    if e % 10 == 0: fcn.model.save_weights('data/weights/%s.h5'%e)
 
 
 # fcn.model.fit(nptileimgs, npimgs, batch_size=4, nb_epoch=10, verbose=1, validation_split=0.2, shuffle=True)

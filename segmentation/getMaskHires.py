@@ -10,10 +10,10 @@ import naip
 import argparse
 import os
 
-maskDir = "./data/segmentation/"
+maskDir = "./data/hires-segmentation/"
 if not os.path.exists(maskDir): os.makedirs(maskDir)
 
-tileDir = "./data/tiles"
+tileDir = "./data/hires-tiles"
 if not os.path.exists(tileDir): os.makedirs(tileDir)
 
 parser = argparse.ArgumentParser(description='Input longitude and lattitude')
@@ -23,7 +23,10 @@ parser.add_argument("x2", help = "Right Longitude", type = float)
 parser.add_argument("y", help = "Top Latitude", type = float)
 args = parser.parse_args()
 
-zoomlevel = 17
+zoomlevel = 19
+hightilelevel = 20
+zdiff = hightilelevel-zoomlevel
+resolution = int(256*(2**zdiff))
 
 def getMask(startX,startY, zoomlevel):
 	endX = startX+1
@@ -35,23 +38,29 @@ def getMask(startX,startY, zoomlevel):
 	xLength = abs(left-right)
 	yLength = abs(top-bottom)
 	
-	img = Image.new("RGB", (256,256), (0,0,0))
+	img = Image.new("RGB", (resolution,resolution), (0,0,0))
 	drw = ImageDraw.Draw(img, "RGB")
 	
 	for rawbuilding in buildings:
 		building = json.loads(rawbuilding[0])
 		try:	 
-			buildingCoord = [((buildingX-left)/xLength*255,(top-buildingY)/yLength*255) for (buildingX,buildingY) in building["coordinates"][0]]
+			buildingCoord = [((buildingX-left)/xLength*resolution,(top-buildingY)/yLength*resolution) for (buildingX,buildingY) in building["coordinates"][0]]
 			drw.polygon(buildingCoord, fill=(255,255,255))
 		except ValueError:
 			print ("could not fetch", startX, startY)
 
-	img.save("%s/%s_%s.jpg" % (maskDir,startX,startY))
+	img.save("%s/%s_%s.jpg" % (maskDir,startX,startY))	
+
 	try:
-		realImg = naip.fetchTile(startX,startY,zoomlevel)
-		file_jpgdata = StringIO(realImg)
-		i = Image.open(file_jpgdata).convert('RGB')
-		i.save("%s/%s_%s.jpg" % (tileDir,startX,startY))
+		hrimg = Image.new("RGB", (resolution,resolution), (0,0,0))
+		for x in range(zdiff+1):
+			for y in range(zdiff+1):
+				
+				realImg = naip.fetchTile(startX*(2**zdiff)+x,startY*(2**zdiff)+y,hightilelevel)
+				file_jpgdata = StringIO(realImg)
+				i = Image.open(file_jpgdata).convert('RGB')
+				hrimg.paste(i, (256*x,256*y))
+		hrimg.save("%s/%s_%s.jpg" % (tileDir,startX,startY))
 	except TypeError:
 		print ("failed to load tile", startX, startY)
 
@@ -74,14 +83,3 @@ while True:
 	print len(tiles)
 	for x,y in tiles:
 		getMask(x,y,zoomlevel)
-
-# for x in range(startX,endX):
-# 	for y in range(startY, endY):
-# 		getMask(x,y,zoomlevel)
-		
-"""
-
-(x,y) = naip.deg2tile(-105.285, 40.026, 17)
-getMask(x,y,17)
-
-"""
