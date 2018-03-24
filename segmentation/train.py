@@ -10,13 +10,13 @@ import fcn
 
 cwd = os.path.dirname(__file__)
 
-masks_path = 'data/train_segmentation/masks'
+masks_path = 'data/hires-train_segmentation/masks'
 masks = os.listdir(masks_path)
 
 imgs = []
 for imgPath in masks:
     img = image.load_img(os.path.join(masks_path, imgPath), target_size=(fcn.img_width, fcn.img_height), grayscale = True)
-    x = np.asarray(img).reshape((256, 256, 1))
+    x = np.asarray(img).reshape((512, 512, 1))
     x = np.expand_dims(x, axis=0)
     x = x * (1./255)
     x[x > 0.5] = 1
@@ -25,7 +25,7 @@ for imgPath in masks:
     imgs.append(x)
 npimgs = np.vstack(imgs) #masks
 
-tiles_path = 'data/train_segmentation/tiles'
+tiles_path = 'data/hires-train_segmentation/tiles'
 tiles = os.listdir(tiles_path)
 
 timgs = []
