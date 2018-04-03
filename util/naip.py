@@ -9,9 +9,12 @@ req = urllib2.Request('https://api.trimblemaps.com/services.json?per_page=3&clie
 req.add_header('X-API-TOKEN', CRED['naip_tiles_key'])
 resp = urllib2.urlopen(req)
 ata = json.loads(resp.read())
-template = ata['items'][0]['tile_url_templates'][0]
+#ata['items'][1] for naip
+template = ata['items'][1]['tile_url_templates'][0]
 
-template = "https://c.tiles.mapbox.com/v4/digitalglobe.316c9a2e/${z}/${x}/${y}.png?access_token=pk.eyJ1IjoiZGlnaXRhbGdsb2JlIiwiYSI6ImNqZGFrZ2c2dzFlMWgyd2x0ZHdmMDB6NzYifQ.9Pl3XOO82ArX94fHV289Pg"
+
+
+#template = "https://c.tiles.mapbox.com/v4/digitalglobe.316c9a2e/${z}/${x}/${y}.png?access_token=pk.eyJ1IjoiZGlnaXRhbGdsb2JlIiwiYSI6ImNqZGFrZ2c2dzFlMWgyd2x0ZHdmMDB6NzYifQ.9Pl3XOO82ArX94fHV289Pg"
 
 def fetchTile(x,y,zoom):
 	try:

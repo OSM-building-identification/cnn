@@ -16,7 +16,7 @@ masks = os.listdir(masks_path)
 imgs = []
 for imgPath in masks:
     img = image.load_img(os.path.join(masks_path, imgPath), target_size=(fcn.img_width, fcn.img_height), grayscale = True)
-    x = np.asarray(img).reshape((512, 512, 1))
+    x = np.asarray(img).reshape((256, 256, 1))
     x = np.expand_dims(x, axis=0)
     x = x * (1./255)
     x[x > 0.5] = 1

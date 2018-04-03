@@ -14,13 +14,13 @@ import random
 import fcn
 
 print "loading weights..."
-fcn.model.load_weights('data/weights/993.h5')
+fcn.model.load_weights('data/weights/267.h5')
 
 cwd = os.path.dirname(__file__)
 
 #imgpath = 'data/train_segmentation/tiles/20987_45730.jpg' #20745_46208, 24659_52516, 27322_49764
 
-images = glob.glob('data/tiles/*.jpg')
+images = glob.glob('data/hires-tiles/*.jpg')
 random.shuffle(images)
 
 for imgpath in images:
@@ -50,13 +50,17 @@ for imgpath in images:
 		rect = cv2.minAreaRect(contour)
 		box = cv2.boxPoints(rect)
 		boxpts = [(p[0], p[1]) for p in box]
-		# epsilon = 0.02*cv2.arcLength(contour,True)
-		# approx = cv2.approxPolyDP(contour,epsilon,True)
-		# approxpnts = [(p[0][0], p[0][1]) for p in contour]
-		try:
-			drw.polygon(boxpts, outline=(255,0,0,158))
-		except TypeError:
-			print "draw err"
+		epsilon = 0.01*cv2.arcLength(contour,True)
+		approx = cv2.approxPolyDP(contour,epsilon,True)
+		approxpnts = [(p[0][0], p[0][1]) for p in contour]
+
+
+		drw.polygon(boxpts, outline=(255,0,0,158))
+		drw.polygon(approxpnts, outline=(0,0,255,158))
+		# try:
+			
+		# except TypeError:
+		# 	print "draw err"
 
 
 	img.show()

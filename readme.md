@@ -7,7 +7,7 @@ for Trimble Seinor Capsone Project "Building Identification from Satelite Imager
  - **install python2.7 and dependencies:** 
  
     *pip install pyproj Pillow psycopg2 Flask flask-cors
-     flask_httpauth pandas tensorflow keras h5py grequests* 
+     flask_httpauth pandas tensorflow keras h5py grequests opencv-python* 
    - `pyproj` python proj4 implementation for converting between coordinate systems
    - `Pillow` python image maniulation library for working with training images
    - `psycopg2` postgres python lobrary
@@ -19,6 +19,7 @@ for Trimble Seinor Capsone Project "Building Identification from Satelite Imager
    - `keras` simplified ML api
    - `h5py` reads weight files
    - `grequests` async file downloads
+   - `opencv-python` computer vision
  - **credentials file:** the private file `cred.json` is expected in the root directory of this project. It contains information for authenticating to various services. It is not in this repo and should not be added to it. It has the following format: (you will probably have to edit database credentials to be your own)
  - 
     ~~~

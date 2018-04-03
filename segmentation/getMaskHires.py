@@ -24,7 +24,7 @@ parser.add_argument("y", help = "Top Latitude", type = float)
 args = parser.parse_args()
 
 zoomlevel = 19
-hightilelevel = 20
+hightilelevel = 19
 zdiff = hightilelevel-zoomlevel
 resolution = int(256*(2**zdiff))
 

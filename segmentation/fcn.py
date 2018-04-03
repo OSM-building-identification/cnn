@@ -6,7 +6,7 @@ from keras.optimizers import *
 from keras.preprocessing import image
 import numpy as np
 
-img_width, img_height = 512, 512
+img_width, img_height = 256, 256
 
 input_shape = (img_width, img_height, 3)
 
