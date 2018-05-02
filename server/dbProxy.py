@@ -3,6 +3,7 @@
 # ----------------------------------------------
 import json
 import psycopg2
+from flask import request
 
 from db import *
 
