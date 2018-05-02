@@ -8,8 +8,8 @@ import cnn
 
 cwd = os.path.dirname(__file__)
 
-dir_path = 'data/train/False'
-cnn.model.load_weights('./data/classifier.h5')
+dir_path = 'data/train_classifier/train/False'
+cnn.model.load_weights('./data/weights/classifier.h5')
 images = os.listdir(dir_path)
 failed = 0
 totalTime = 0

@@ -1,3 +1,6 @@
+import sys
+sys.path.append('./util/')
+
 import os
 import imagery
 import tileMath
