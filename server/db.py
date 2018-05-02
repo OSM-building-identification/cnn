@@ -1,3 +1,6 @@
+# ----------------------------------------------
+# Db Helper for flask server, starts connections
+# ----------------------------------------------
 import psycopg2
 from cred import *
 

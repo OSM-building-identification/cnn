@@ -1,3 +1,6 @@
+# -------------------------------------------
+#	Test the classifier, and show failing images
+# -------------------------------------------
 import argparse
 import os
 import time

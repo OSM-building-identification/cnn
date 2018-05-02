@@ -1,3 +1,6 @@
+# -----------------------------------
+#	Classifier Training Data Gathering
+# -----------------------------------
 import sys
 sys.path.append('./util/')
 
@@ -5,8 +8,6 @@ import os
 import imagery
 import tileMath
 import argparse
-import grequests
-import shutil
 import random
 
 from cred import *
@@ -14,10 +15,12 @@ from db import *
 
 zoomlevel = 17
 
+# Check to see if this tile is already in the training_tiles table
 def fresh(x,y):
 	cur.execute('select 1 from training_tiles where x=%s and y=%s;', (x, y))
 	return cur.fetchone() == None;
 
+# Check if there is no building in a tile according to OSM database
 def no_building(x,y):
 	(left,top) = tileMath.tile2deg(x, y, zoomlevel)
 	(right,bottom) = tileMath.tile2deg(x+1, y+1, zoomlevel)
@@ -26,6 +29,7 @@ def no_building(x,y):
 	return building == False
 
 if __name__=='__main__':
+	# create the output directory if it doesn't already exist
 	root = "./data/tiles/"
 	if not os.path.exists(root): os.makedirs(root)
 
@@ -41,6 +45,8 @@ if __name__=='__main__':
 
 	(startX, startY) = tileMath.deg2tile(topLeft[0],topLeft[1],zoomlevel)
 	(endX, endY) = tileMath.deg2tile(bottomRight[0],bottomRight[1],zoomlevel)
+	
+	# flatten the bounding box and randomly sample tiles from it
 	series = [(x, y) for x in range(startX, endX) for y in range(startY, endY)] 
 	random.shuffle(series)
 
@@ -49,6 +55,7 @@ if __name__=='__main__':
 
 	print len(series)
 
+	# save a list of (x,y) tiles with bool "building" into training_tiles table
 	def save(li, building):
 		for (x,y) in li:
 			print (x,y,building)
@@ -61,6 +68,8 @@ if __name__=='__main__':
 
 	count=5
 
+	# continually randomly sample tiles. if there are too many of one category,
+	# we find the other category explicitly from OSM
 	while True:
 		has_none = []
 		i = 0
@@ -68,7 +77,6 @@ if __name__=='__main__':
 			(x, y) = series[i]
 			if no_building(x,y) and fresh(x,y) :
 				has_none.append((x,y))
-			#print (x,y, no_building(x,y), fresh(x,y))
 			i = i + 1
 		save(has_none, False)
 

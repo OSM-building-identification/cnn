@@ -1,12 +1,12 @@
+# -----------------------------------
+#	Classifier CNN Model Definition
+# -----------------------------------
 from keras.models import Sequential
 from keras.layers import Conv2D, MaxPooling2D
 from keras.layers import Activation, Dropout, Flatten, Dense
-from keras import backend as K
-from keras.preprocessing import image
 import numpy as np
 
 img_width, img_height = 128, 128
-
 input_shape = (img_width, img_height, 3)
 
 model = Sequential()

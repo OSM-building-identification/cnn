@@ -1,27 +1,22 @@
+# -------------------------------------
+#	Classifier Scan for missing buildings
+# -------------------------------------
 import sys
 sys.path.append('./util/')
 
-from geojson import GeometryCollection, Polygon
-import os
 import math
-import imagery
-import tileMath
 import argparse
-import psycopg2
-import grequests
-import shutil
-import random
-import time
 from PIL import Image
 from cStringIO import StringIO
 import numpy as np
 import ast
 
+import tileMath
+import imagery
 from cred import *
 from db import *
 
-
-
+# take a bounding box and split it into 4 quadrants, returned as bounding boxes
 def getQuads(bbox):
 	(startX, startY, endX, endY) = bbox
 	dx = endX-startX
@@ -35,21 +30,27 @@ def getQuads(bbox):
 		(mx, my, endX, endY) #bottom right
 	]
 
+# return the size of a bounding box in tiles
 def getArea(bbox):
 	(startX, startY, endX, endY) = bbox
 	dx = endX-startX
 	dy = endY-startY
 	return dx*dy
 
+# check to see if the bounding box already has OSM data in it.
+# anyData param specifies if even "False" predictions should be taken into account
 def hasData(bbox, anyData):
 	(startX, startY, endX, endY) = bbox
 
 	(left,top) = tileMath.tile2deg(startX, startY, zoomlevel)
 	(right,bottom) = tileMath.tile2deg(endX, endY, zoomlevel)
 
+	# if there is a building in OSM with the data already, just exit
 	building = queryosm("select exists(select 1 from building_polygon where geometry && ST_MakeEnvelope(%s, %s, %s, %s, 4326))" % (right, bottom, left, top))[0][0]
 	if building == True:
 		return True
+
+	# check to see if we've already predicted. if anyData is true, predicitions true or false count
 	if anyData:
 		cur.execute("select exists(select 1 from predictions where x>=%s and y>=%s and x<%s and y<%s)",(startX, startY, endX, endY))
 	else:
@@ -57,18 +58,7 @@ def hasData(bbox, anyData):
 	(scanned, ) = cur.fetchone();
 	return scanned
 
-def getPolygon(bbox):
-	(startX, startY, endX, endY) = bbox
-	(left,top) = tileMath.tile2deg(startX, startY, zoomlevel)
-	(right,bottom) = tileMath.tile2deg(endX, endY, zoomlevel)
-	return Polygon([[
-		(left, top),
-		(left, bottom),
-		(right, bottom),
-		(right, top),
-		(left, top)
-	]])
-
+# given a single tile, make a prediction, and save it in the db
 def scan(x, y):
 	if hasData((x, y, x+1, y+1), True):
 		return
@@ -106,6 +96,7 @@ def intersects(bbox, obbox):
 	(ostartX, ostartY, oendX, oendY) = obbox
 	return  isInside((ostartX, ostartY), bbox) or isInside((oendX, oendY), bbox) or isInside((startX, startY), obbox) or isInside((endX, endY), obbox)
 
+# in an infinite grid of bboxes all the size of this bbox, returns the 8 neighbors around bbox
 def getNeighbors(bbox):
 	global quads
 	(startX, startY, endX, endY) = bbox
@@ -124,6 +115,8 @@ def getNeighbors(bbox):
 		(startX-dx, startY, startX, endY) #l
 	])
 
+# scan all tiles within a quad. If it finds enough buildings:
+# it adds its neighbors to the quads stack
 def scanAll(quad):
 	global quads
 	(startX, startY, endX, endY) = quad
@@ -139,7 +132,8 @@ def scanAll(quad):
 		print ('adding neighbors', len(ns))
 		quads = ns+quads
 
-def getTileNeighbors(roads):
+# given a list of roads returns all adjacent tiles
+def getTilesNearRoads(roads):
 	keys = range(len(roads))
 	values = []
 	roadTiles = {}
@@ -178,7 +172,7 @@ def getTileNeighbors(roads):
 	print len(set(neighbors))
 	return list(set(neighbors))
 
-
+# select roads from OSM db
 def getRoads(bbox):
 	(startX, startY, endX, endY) = bbox
 	(left,top) = tileMath.tile2deg(startX, startY, zoomlevel)
@@ -186,17 +180,17 @@ def getRoads(bbox):
 	roads = queryosm("select ST_AsGeoJSON(geometry) from highway_line where highway='tertiary' and ST_Intersects(geometry, ST_MakeEnvelope(%s, %s, %s, %s, 4326))" % (right, bottom, left, top))
 	return roads
 
+# scan the area of a quad for all roads.
 def scanRoads(quad):
 	global quads
 	roadsToScan = getRoads(quad)
-	tilesToScan = getTileNeighbors(roadsToScan)
+	tilesToScan = getTilesNearRoads(roadsToScan)
 	for (x,y) in tilesToScan:
 		scan(x, y)
 
 if __name__=="__main__":
 	from keras.preprocessing import image
 	import cnn
-
 
 	cnn.model.load_weights('./data/weights/classifier.h5')
 
@@ -219,8 +213,8 @@ if __name__=="__main__":
 	startbox = (startX, startY, endX, endY)
 
 	quads = [startbox]
-	skipped = []
 
+	# depending on the type argument, scan with roads or by quadtree
 	if args.type == 'roads':
 		quad = quads.pop(-1)
 		scanRoads(quad)
@@ -235,6 +229,5 @@ if __name__=="__main__":
 				quads.extend(getQuads(quad))
 			else:
 				print ('skipping', quad)
-				skipped.append(getPolygon(quad))
 	
 	conn.close()

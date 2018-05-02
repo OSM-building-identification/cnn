@@ -1,3 +1,6 @@
+# -------------------------------------------------
+# db util, connects to OSM proxy if running locally
+# -------------------------------------------------
 import psycopg2
 import requests
 import json

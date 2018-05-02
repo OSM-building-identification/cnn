@@ -1,7 +1,11 @@
+# ----------------------------------------------
+# Helper functions for geo math with tiles
+# ----------------------------------------------
 import urllib2
 import json
 import math
 
+# finds tile containing lat lng point at zoom level
 def deg2tile(lon, lat, zoom):
 	lat_rad = math.radians(lat)
 	n = 2.0 ** zoom
@@ -17,11 +21,13 @@ def tile2deg(xtile, ytile, zoom):
 	lat = math.degrees(lat_rad)
 	return (lon, lat)
 
+# checks if point is in tile
 def isInTile(lon, lat, xtile, ytile, zoom):
 	(left,top) = tile2deg(xtile, ytile, zoom)
 	(right,bottom) = tile2deg(xtile+1, ytile+1, zoom)
 	return left <= lon and right >= lon and top >= lat and bottom <= lat
 
+# checks if a feature intersects a tile
 def featureInTile(feature, xtile, ytile, zoom):
 	coord = feature['geometry']['coordinates'][0][0]
 	return isInTile(coord[0], coord[1], xtile, ytile, zoom)

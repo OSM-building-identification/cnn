@@ -1,3 +1,6 @@
+# ----------------------------------------------
+# Routes for proxying OSM db requests
+# ----------------------------------------------
 import json
 import psycopg2
 

@@ -1,8 +1,12 @@
+# -----------------------------
+# Routes for Missing Tiles (iD)
+# -----------------------------
 from flask import jsonify
 from flask import request
 
 from db import *
 
+#simple cached tile fetch
 cache = {}
 def getTilesCached(bounds):
 	if bounds in cache:
@@ -15,9 +19,9 @@ def getTilesCached(bounds):
 		return resTiles;
 
 def init(app, auth):
-	# -------------------
+	# ---------------------------
 	# Missing Tiles Cluser Server
-	# -------------------
+	# ---------------------------
 	@app.route("/pred_tiles",  methods = ['POST'])
 	@auth.login_required
 	def get_tiles():
@@ -32,7 +36,7 @@ def init(app, auth):
 			sy = tile[1]
 			sz = tile[2]
 
-			toGet = [(sx,sy,sz)]
+			toGet = [(sx,sy,sz)] #stack of tiles which still need to be founf
 			res = {}
 			while len(toGet) > 0 and len(res) < 20:
 				(x, y, z) = toGet.pop(0)
@@ -41,6 +45,7 @@ def init(app, auth):
 				startY = y*ratio
 				size = ratio/2
 
+				# for each quadrand of tile
 				for xo in range(2):
 					for yo in range(2):
 						tstartX = startX+(size*xo)
@@ -54,7 +59,7 @@ def init(app, auth):
 						resTiles = getTilesCached((tstartX, tstartY, tendX, tendY))
 						count = len(resTiles)
 
-
+						# if 17 then return tile, otherwise subdivide if we haven't gone too far already
 						if(thisZ == 17):
 							for restile in resTiles:
 								(x,y,model,completed,incorrect) = restile
@@ -73,7 +78,6 @@ def init(app, auth):
 								'coords' : [thisX, thisY, thisZ]
 							}
 					
-
 			out[','.join(map(lambda n: str(n), tile))] = res
 
 		return jsonify(out)

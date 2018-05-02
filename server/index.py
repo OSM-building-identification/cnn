@@ -1,3 +1,6 @@
+# --------------------------------------------------------
+# Flask server for use by, osm proxy, iD and verifier apps
+# --------------------------------------------------------
 import sys
 sys.path.append('util')
 
@@ -7,6 +10,7 @@ from flask_cors import CORS
 
 from cred import *
 
+# modules
 import manualVerifier
 import tileServer
 import contourPredictor
@@ -17,6 +21,7 @@ app = Flask(__name__)
 CORS(app)
 auth = HTTPBasicAuth()
 
+# basic auth when in production
 @auth.verify_password
 def verify_pw(username, password):
 		if CRED['dev'] != "true":
@@ -24,6 +29,7 @@ def verify_pw(username, password):
 		else:
 			return True
 
+# init all modules
 manualVerifier.init(app, auth)
 tileServer.init(app, auth)
 contourPredictor.init(app, auth)

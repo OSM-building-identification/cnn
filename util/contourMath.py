@@ -1,25 +1,29 @@
+# ----------------------------------------------
+# Helper functions for contour estimation
+# ----------------------------------------------
 import numpy as np
 
+# get angle of point relative to origin
 def getPointAngle(point):
 	return np.arctan2(point[1], point[0])
 
+# get angle of a segment
 def getSegmentAngle(segment):
 	i = segment[0]
 	j = segment[1]
 	jtranslate = (j[0]-i[0], j[1]-i[1])
 	return getPointAngle(jtranslate)
 
-def getSegFromContour(contour, indexes):
-	return [contour[indexes[0]], contour[indexes[1]]]
-
+# test if angle, and start of contour wraps all following points to the left
 def isConvexMax(theta, contour):
 	start = contour[0]
 	for point in contour[1:]:
 		dtheta = (getSegmentAngle([start, point])-theta)%(np.pi*2)
 		if dtheta >= np.pi:
-			return False, point
-	return True, None
+			return False, point #return the point that violates this
+	return True, None 
 
+# finds the local maximum point that is projected on to a line at angle theta from contour start
 def getProjMax(theta, contour):
 	[x1, y1] = contour[0]
 	[x2, y2] = [contour[0][0]+np.cos(theta), contour[0][1]+np.sin(theta)]
@@ -39,6 +43,7 @@ def getProjMax(theta, contour):
 		else:
 			return lastpoint, lastproj
 
+# approximates a contour with an initial theta, and 90deg turns
 def sharpHull(theta, contour):
 	hull = []
 	while len(contour) > 2:

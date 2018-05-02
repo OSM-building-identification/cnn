@@ -1,3 +1,6 @@
+# ---------------------------
+# Routes for Manual verifier
+# ---------------------------
 from db import *
 from flask import jsonify
 
