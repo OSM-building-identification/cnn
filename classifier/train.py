@@ -19,7 +19,7 @@ batch_size = 64
  
 class Callbacks(keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs={}):
-        self.model.save_weights(os.path.join(cwd, '..', 'weights%s.h5' % epoch))
+        self.model.save_weights(os.path.join(cwd, 'data/weights', 'classifier%s.h5' % epoch))
         return
 
 callbacks = Callbacks()

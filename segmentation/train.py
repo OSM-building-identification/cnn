@@ -4,14 +4,17 @@ from keras.preprocessing import image
 import numpy as np
 from PIL import Image
 from keras.callbacks import ModelCheckpoint, LearningRateScheduler
+import keras
 
 
 import fcn
 
 cwd = os.path.dirname(__file__)
 
-masks_path = 'data/hires-train_segmentation/masks'
+masks_path = 'data/train_segmentation/masks'
 masks = os.listdir(masks_path)
+
+#fcn.model.load_weights('data/weights/993.h5')
 
 imgs = []
 for imgPath in masks:
@@ -25,7 +28,7 @@ for imgPath in masks:
     imgs.append(x)
 npimgs = np.vstack(imgs) #masks
 
-tiles_path = 'data/hires-train_segmentation/tiles'
+tiles_path = 'data/train_segmentation/tiles'
 tiles = os.listdir(tiles_path)
 
 timgs = []
@@ -51,9 +54,14 @@ seed = 1
 image_datagen.fit(nptileimgs[:10], augment=True, seed=seed)
 mask_datagen.fit(npimgs[:10], augment=True, seed=seed)
 
-image_generator = image_datagen.flow(nptileimgs, seed=seed, batch_size=1000)
-mask_generator = mask_datagen.flow(npimgs, seed=seed, batch_size=1000)
+image_generator = image_datagen.flow(nptileimgs, seed=seed, batch_size=10000)
+mask_generator = mask_datagen.flow(npimgs, seed=seed, batch_size=10000)
 
+class LossHistory(keras.callbacks.Callback):
+    def on_batch_end(self, batch, logs={}):
+        print "acc %s, loss, %s" % (logs.get('acc'), logs.get('loss'))
+
+history = LossHistory()
 
 batchnum=0
 for e in range(1000):
@@ -63,9 +71,5 @@ for e in range(1000):
     mask_batch = []
     image_batch = image_generator.next()
     mask_batch = mask_generator.next()
-    fcn.model.fit(np.array(image_batch), np.array(mask_batch),batch_size=32, verbose=1)
-    if e % 10 == 0: fcn.model.save_weights('data/weights/%s.h5'%e)
-
-
-# fcn.model.fit(nptileimgs, npimgs, batch_size=4, nb_epoch=10, verbose=1, validation_split=0.2, shuffle=True)
-# fcn.model.save_weights('out.h5')
+    fcn.model.fit(np.array(image_batch), np.array(mask_batch),batch_size=4, verbose=0, callbacks=[history])
+    if e % 3 == 0: fcn.model.save_weights('data/weights/%s.h5'%e)

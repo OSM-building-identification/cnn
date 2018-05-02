@@ -38,7 +38,8 @@ for Trimble Seinor Capsone Project "Building Identification from Satelite Imager
         "pass" : ...
      },
      "http" : { //http authentication for use on server
-          "pass" : ...
+        "pass" : ...,
+        "remote-host" : ... //server ip address (for OSM db)
      },
      "dev" : "true" //set to true execpt on production server
     }
@@ -152,5 +153,3 @@ webserver is in `building-identification/server/`:
  - accepts input on unverified training data
 
 check service status:
-
-

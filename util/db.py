@@ -22,10 +22,14 @@ conn = psycopg2.connect(
 )
 cur = conn.cursor()
 
-
+# isomorphic function for querying the osm database both on aws and locally
 def queryosm(query):
 	if CRED['dev'] == 'true':
-		r = requests.post('http://34.214.185.174/api/osm', data = {'query':query}, auth=('a', CRED['http']['pass']))
+		r = requests.post(
+			CRED['http']['remote-host']+'osm',
+			data = {'query':query},
+			auth=('a', CRED['http']['pass'])
+		)
 		if(r.status_code == 200):
 			return json.loads(r.text)
 		else:
