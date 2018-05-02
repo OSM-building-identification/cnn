@@ -11,6 +11,7 @@ import tileMath
 import predict
 
 def init(app, auth):
+	predict.load(False)
 	# -------------------
 	# On-Demand Contour prediction
 	# -------------------

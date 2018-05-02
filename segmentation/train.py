@@ -72,4 +72,4 @@ for e in range(1000):
     image_batch = image_generator.next()
     mask_batch = mask_generator.next()
     fcn.model.fit(np.array(image_batch), np.array(mask_batch),batch_size=4, verbose=0, callbacks=[history])
-    if e % 3 == 0: fcn.model.save_weights('data/weights/%s.h5'%e)
+    fcn.model.save_weights('data/weights/%s.h5'%e)

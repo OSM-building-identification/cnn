@@ -7,8 +7,12 @@ import cv2
 
 import fcn
 import contourMath
-print "loading weights..."
-fcn.model.load_weights('./data/weights/segmentation.h5')
+
+def load(weights):
+	if not weights:
+		weights = './data/weights/segmentation.h5'
+	print "loading weights..."
+	fcn.model.load_weights(weights)
 
 def predictMask(arr):
 	arr = np.expand_dims(arr, axis=0)
@@ -35,7 +39,7 @@ def getContours(i):
 			contourpnts = contourpnts[::-1]
 
 			lineIndicies = []
-			residualsThresh = 2
+			residualsThresh = 0.5
 			startindex=0
 			endindex=2
 
@@ -78,11 +82,11 @@ def getContours(i):
 				shull = contourMath.sharpHull(theta, tail)
 				points = points+shull
 
-			if True or len(points) < 3 or len(lineIndicies) == 0:
+			if len(points) < 3 or len(lineIndicies) == 0:
 				pointset = boxpts
 			else:
 				pointset = points
-				epsilon = 1
+				epsilon = 2
 				pointset = cv2.approxPolyDP(np.array(pointset),epsilon,True)
 				pointset = [[p[0][0], p[0][1]] for p in pointset]
 

@@ -41,7 +41,7 @@ def getArea(bbox):
 	dy = endY-startY
 	return dx*dy
 
-def hasData(bbox):
+def hasData(bbox, anyData):
 	(startX, startY, endX, endY) = bbox
 
 	(left,top) = tileMath.tile2deg(startX, startY, zoomlevel)
@@ -50,7 +50,10 @@ def hasData(bbox):
 	building = queryosm("select exists(select 1 from building_polygon where geometry && ST_MakeEnvelope(%s, %s, %s, %s, 4326))" % (right, bottom, left, top))[0][0]
 	if building == True:
 		return True
-	cur.execute("select exists(select 1 from predictions where x>=%s and y>=%s and x<%s and y<%s and has_building=TRUE)",(startX, startY, endX, endY))
+	if anyData:
+		cur.execute("select exists(select 1 from predictions where x>=%s and y>=%s and x<%s and y<%s)",(startX, startY, endX, endY))
+	else:
+		cur.execute("select exists(select 1 from predictions where x>=%s and y>=%s and x<%s and y<%s and has_building=TRUE)",(startX, startY, endX, endY))
 	(scanned, ) = cur.fetchone();
 	return scanned
 
@@ -67,7 +70,7 @@ def getPolygon(bbox):
 	]])
 
 def scan(x, y):
-	if hasData((x, y, x+1, y+1)):
+	if hasData((x, y, x+1, y+1), True):
 		return
 	img = imagery.fetchTile(x,y,zoomlevel)
 	if img == None:
@@ -109,7 +112,7 @@ def getNeighbors(bbox):
 	dx = endX-startX
 	dy = endY-startY
 	def fi(bbox):
-		return not hasData(bbox) and all(not intersects(bbox, quad) for quad in quads)
+		return not hasData(bbox, False) and all(not intersects(bbox, quad) for quad in quads)
 	return filter(fi, [
 		(startX-dx, startY-dy, startX, startY), #tl
 		(startX, startY-dy, endX, startY), #tm
@@ -136,37 +139,6 @@ def scanAll(quad):
 		print ('adding neighbors', len(ns))
 		quads = ns+quads
 
-# Using this to print out the tile coordinates for each LineString found in the
-# given bounding box
-def findGeoJSONArea(roadTiles):
-	#print(roadTiles)
-	near = []
-	nearDeg = []
-	tiles = {}
-	degTiles = {}
-	for key, value in roadTiles.iteritems():
-		del near[:]
-		for (x, y) in value:
-			near.append((x+1, y+1))
-			near.append((x-1, y-1))
-			near.append((x+1, y-1))
-			near.append((x-1, y+1))
-			near.append((x, y+1))
-			near.append((x, y-1))
-			near.append((x+1, y))
-			near.append((x-1, y))
-		tiles[key] = near
-	for key, value in tiles.iteritems():
-		del nearDeg[:]
-		for (x, y) in value:
-			nearDeg.append(tileMath.tile2deg(x, y, zoomlevel))
-		degTiles[key] = nearDeg
-	# Now updatedTiles is a dict with a list of all neighbors corresponding
-	# to each LineString entry in the bounding box. The list represents
-	# neighbors as their latitude and longitude
-	print degTiles
-
-
 def getTileNeighbors(roads):
 	keys = range(len(roads))
 	values = []
@@ -186,9 +158,6 @@ def getTileNeighbors(roads):
 	# Need this to associate each LineString with the polygon that will be scanned
 	for i in keys:
 		roadTiles[i] = values[i]
-
-	# Turn this on to find the polygons for visual representation
-	#findGeoJSONArea(roadTiles)
 
 	# Make large list of all road tiles
 	for key, value in roadTiles.iteritems():
@@ -215,35 +184,27 @@ def getRoads(bbox):
 	(left,top) = tileMath.tile2deg(startX, startY, zoomlevel)
 	(right,bottom) = tileMath.tile2deg(endX, endY, zoomlevel)
 	roads = queryosm("select ST_AsGeoJSON(geometry) from highway_line where highway='tertiary' and ST_Intersects(geometry, ST_MakeEnvelope(%s, %s, %s, %s, 4326))" % (right, bottom, left, top))
-
-	for road in roads:
-		print("{\n\"type\": \"Feature\",\n\"geometry\": " + str(road[0]) + ",")
-		print("\"properties\": {\"name\": \"roads\"}\n},")
-
-	return getTileNeighbors(roads)
-
-
+	return roads
 
 def scanRoads(quad):
 	global quads
-	roadsToScan = sorted(getRoads(quad), key=lambda x: x[1])
-	#roadsToScan = getRoads(quad)
-	for (x,y) in roadsToScan:
-		#scan(x, y)
-		(lon, lat) = tileMath.tile2deg(x, y, zoomlevel)
-		#print (str(lat) + ", " + str(lon))
+	roadsToScan = getRoads(quad)
+	tilesToScan = getTileNeighbors(roadsToScan)
+	for (x,y) in tilesToScan:
+		scan(x, y)
 
 if __name__=="__main__":
 	from keras.preprocessing import image
 	import cnn
 
 
-	cnn.model.load_weights('./data/classifier.h5')
+	cnn.model.load_weights('./data/weights/classifier.h5')
 
 	root = "./data/tiles/"
 	zoomlevel = 17
 
 	parser = argparse.ArgumentParser(description='Input longitude and lattitude')
+	parser.add_argument("type", help = "[quads|roads]", type = str)
 	parser.add_argument("x", help = "Left Longitude", type = float)
 	parser.add_argument("y2", help = "Bottom Latitude", type = float)
 	parser.add_argument("x2", help = "Right Longitude", type = float)
@@ -258,32 +219,22 @@ if __name__=="__main__":
 	startbox = (startX, startY, endX, endY)
 
 	quads = [startbox]
-	#scanned = []
 	skipped = []
 
-	quad = quads.pop(-1)
-	scanRoads(quad)
-
-	'''
-	This is the code to search based on neighbors and quad trees.
-	Currently commented out to search based on roads in the given bounding box.
-
-	while len(quads) > 0:
-		print len(quads)
+	if args.type == 'roads':
 		quad = quads.pop(-1)
-		if getArea(quad) < 20:
-			print ('scan', quad, getArea(quad))
-			scanAll(quad)
-			#scanned.append(getPolygon(quad))
-		elif hasData(quad):
-			quads.extend(getQuads(quad))
-		else:
-			#print ('skipping', quad)
-			skipped.append(getPolygon(quad))
-	'''
-
-
-
-	#print GeometryCollection(skipped)
-
+		scanRoads(quad)
+	if args.type == 'quads':
+		while len(quads) > 0:
+			print len(quads)
+			quad = quads.pop(-1)
+			if getArea(quad) < 20:
+				print ('scan', quad, getArea(quad))
+				scanAll(quad)
+			elif hasData(quad, True):
+				quads.extend(getQuads(quad))
+			else:
+				print ('skipping', quad)
+				skipped.append(getPolygon(quad))
+	
 	conn.close()

@@ -1,3 +1,4 @@
+import argparse
 import os
 import time
 from keras.preprocessing import image
@@ -6,10 +7,14 @@ from PIL import Image
 
 import cnn
 
+parser = argparse.ArgumentParser()
+parser.add_argument("-w", "--weights", help="weightfile", type=str, default='./data/weights/classifier.h5')
+args = parser.parse_args()
+
 cwd = os.path.dirname(__file__)
 
 dir_path = 'data/train_classifier/train/False'
-cnn.model.load_weights('./data/weights/classifier.h5')
+cnn.model.load_weights(args.weights)
 images = os.listdir(dir_path)
 failed = 0
 totalTime = 0

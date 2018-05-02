@@ -14,7 +14,7 @@ import os
 maskDir = "./data/masks/"
 if not os.path.exists(maskDir): os.makedirs(maskDir)
 
-tileDir = "./data/tiles"
+tileDir = "./data/tiles/"
 if not os.path.exists(tileDir): os.makedirs(tileDir)
 
 parser = argparse.ArgumentParser(description='Input longitude and lattitude')
