@@ -1,10 +1,10 @@
-# Building Identification CNN
+# Building Identification From Satelite Imagery
 for Trimble Seinor Capsone Project "Building Identification from Satelite Imagery" (BIFSI)
 
 ## Contents
  - [Architecture Overview](#architecture-overview)
  - [Installation](#installation)
-   - [Local-Dev-Specific Installation](#installation)
+   - [Local-Dev-Specific Installation](#local-dev-specific-installation)
    - [Production-Specific Installation](#production-specific-installation)
  - [Running BIFSI](#running-bifsi)
    - [Training the Image Tile Classifier](#training-the-image-tile-classifier)
@@ -86,6 +86,8 @@ follow these steps in addition to the core [installation](#installation) to setu
    - `flask run` starts the server
  
 ### Production-Specific Installation
+follow these steps in addition to the core [installation](#installation) to setup BIFSI on a production (remote) machine:
+
  - Inclide a `cred.json` for Production. It should have the following structure:
  
   ~~~
