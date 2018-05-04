@@ -19,7 +19,7 @@ args = parser.parse_args()
 predict.load(args.weights)
 
 # get all tiles, and shuffle their order
-images = glob.glob('data/tiles/*.jpg')
+images = glob.glob('data/train_segmentation/tiles/*.jpg')
 random.shuffle(images)
 
 for imgpath in images:
@@ -37,7 +37,7 @@ for imgpath in images:
 
 	# draw each contour as a cyan poly on top of the input image
 	for pointset in contours:
-		drw.polygon([(x,y) for [x, y] in pointset], outline=(0,255,255,158))
+		drw.polygon([(x,y) for [x, y] in pointset], outline=(255,255,255,158))
 
 	# display the input image
 	img.show()
